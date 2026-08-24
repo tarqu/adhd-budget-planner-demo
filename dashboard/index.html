@@ -1,0 +1,895 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DEMO - ADHD Money Dashboard</title>
+<style>
+  :root{
+    --bg:#FAF6F0; --card:#FFFFFF; --ink:#2E3A34; --muted:#7C857E; --faint:#A6AFA6;
+    --sage:#7C8B6F; --sage-d:#57654C; --sage-l:#EDF1E8;
+    --terra:#D08B6C; --terra-l:#FBEEE6; --red:#C4553B; --red-l:#F8E7E3;
+    --line:#E8E1D7; --r:16px;
+    --serif:"Iowan Old Style",Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink)}
+  body{font:15.5px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .app{display:grid;grid-template-columns:212px 1fr;min-height:100vh;max-width:1180px;margin:0 auto}
+  /* ---- sidebar ---- */
+  aside{padding:26px 16px;border-right:1px solid var(--line)}
+  .logo{font-family:var(--serif);font-size:20px;letter-spacing:.2px;margin:0 0 3px}
+  .logo small{display:block;font-family:inherit;font-size:10.5px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--faint);margin-top:5px}
+  nav{margin-top:26px;display:flex;flex-direction:column;gap:2px}
+  nav button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+    background:none;border:0;padding:9px 11px;border-radius:10px;font:inherit;
+    color:var(--muted);cursor:pointer}
+  nav button:hover{background:#F1EDE5;color:var(--ink)}
+  nav button.on{background:var(--sage-l);color:var(--sage-d);font-weight:600}
+  nav .ic{width:17px;text-align:center;flex:0 0 17px}
+  .quick{margin-top:20px;width:100%;background:var(--sage);color:#fff;border:0;
+    padding:11px;border-radius:11px;font:inherit;font-weight:600;cursor:pointer}
+  .quick:hover{background:var(--sage-d)}
+  /* ---- main ---- */
+  main{padding:26px 26px 60px}
+  .hi{font-family:var(--serif);font-size:23px;margin:0 0 3px}
+  .hi + p{margin:0 0 20px;color:var(--muted);font-size:14.5px}
+  section{display:none} section.on{display:block}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:14px}
+  .card h3{font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
+    margin:0 0 14px;font-weight:600}
+  .safe{background:var(--sage-l);border:1px solid #DCE4D4;border-radius:var(--r);padding:26px 22px;margin-bottom:14px}
+  .safe .k{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--sage-d);opacity:.85}
+  .safe .v{font-family:var(--serif);font-size:57px;line-height:1;margin:7px 0 6px;color:var(--sage-d)}
+  .safe.warn{background:var(--terra-l);border-color:#F0DCCE}
+  .safe.warn .v,.safe.warn .k{color:#A55F3C}
+  .safe.over{background:var(--red-l);border-color:#F1D4CD}
+  .safe.over .v,.safe.over .k{color:var(--red)}
+  .safe .meta{font-size:14px;color:var(--muted)}
+  .status{display:inline-flex;align-items:center;gap:7px;margin-top:13px;background:#fff;
+    border-radius:999px;padding:7px 14px;font-size:13.5px;font-weight:600;color:var(--sage-d)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--sage)}
+  .safe.warn .dot{background:var(--terra)} .safe.warn .status{color:#A55F3C}
+  .safe.over .dot{background:var(--red)} .safe.over .status{color:var(--red)}
+  .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+  .mini{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px}
+  .mini .k{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .mini .v{font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:3px}
+  .in{color:var(--sage-d)} .out{color:var(--red)}
+  /* hub grid */
+  .hub{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .hub .tile{background:var(--card);border:1px solid var(--line);border-radius:13px;
+    padding:16px;cursor:pointer;transition:border-color .15s}
+  .hub .tile:hover{border-color:var(--sage)}
+  .hub .k{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .hub .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:4px}
+  .hub .s{font-size:12.5px;color:var(--faint);margin-top:3px}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+  input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;
+    font-size:15.5px;font-family:inherit;background:#fff;color:var(--ink)}
+  input:focus,select:focus{outline:2px solid var(--sage);outline-offset:1px}
+  .f{margin-bottom:13px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row{display:flex;gap:8px}.row>*{flex:1}.row .sm{flex:0 0 96px}.row .btn{flex:0 0 auto}
+  button.act{background:var(--sage);color:#fff;border:0;border-radius:10px;padding:10px 16px;
+    font:inherit;font-weight:600;cursor:pointer}
+  button.act:hover{background:var(--sage-d)}
+  button.ghost{background:none;border:1px solid var(--line);color:var(--muted);border-radius:10px;
+    padding:9px 14px;font:inherit;cursor:pointer}
+  button.ghost:hover{background:#F2EEE7;color:var(--ink)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .seg button{background:none;border:0;padding:8px 14px;font:inherit;color:var(--muted);cursor:pointer}
+  .seg button.on{background:var(--sage-l);color:var(--sage-d);font-weight:600}
+  ul.list{list-style:none;padding:0;margin:12px 0 0}
+  ul.list li{display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:10px 0;border-bottom:1px solid var(--line)}
+  ul.list li:last-child{border-bottom:0}
+  .amt{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+  .x{background:none;border:0;color:var(--faint);padding:2px 7px;font-size:17px;
+    border-radius:6px;cursor:pointer;line-height:1}
+  .x:hover{background:var(--red-l);color:var(--red)}
+  .sub{color:var(--muted);font-size:13px}
+  .bar{height:8px;background:#EFEAE1;border-radius:999px;overflow:hidden;margin:8px 0 3px}
+  .bar span{display:block;height:100%;background:var(--sage);border-radius:999px;transition:width .35s}
+  .bar span.warn{background:var(--terra)} .bar span.over{background:var(--red)}
+  .catrow{display:flex;justify-content:space-between;font-size:14px}
+  .empty{color:var(--faint);font-size:14px;padding:16px 0;text-align:center}
+  .focus{display:inline-block;background:var(--sage-l);color:var(--sage-d);border-radius:999px;
+    padding:3px 10px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    margin-left:8px}
+  /* impulse pause */
+  .pause{text-align:center;padding:30px 20px}
+  .clock{font-family:var(--serif);font-size:62px;line-height:1;color:var(--sage-d);
+    font-variant-numeric:tabular-nums}
+  .pause p{color:var(--muted);max-width:400px;margin:12px auto 0}
+  .pausebtns{display:flex;gap:9px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+  .note{background:#F7F4EE;border-radius:11px;padding:13px 15px;font-size:14px;color:var(--muted);margin-top:13px}
+  .big{font-family:var(--serif);font-size:38px;color:var(--sage-d);line-height:1.1}
+  footer{grid-column:1/-1;border-top:1px solid var(--line);padding:16px 26px;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+    font-size:13px;color:var(--faint)}
+  @media(max-width:820px){
+    .app{grid-template-columns:1fr}
+    aside{border-right:0;border-bottom:1px solid var(--line)}
+    nav{flex-direction:row;flex-wrap:wrap}
+    nav button{padding:8px 10px}
+    .trio,.hub{grid-template-columns:1fr}
+    .two{grid-template-columns:1fr}
+    .safe .v{font-size:46px}
+  }
+  @media(max-width:520px){
+    .safe .v{font-size:34px}
+    .big{font-size:30px;overflow-wrap:anywhere}
+    .hi{font-size:21px}
+    .clock{font-size:48px}
+  }
+</style>
+
+<div id="demoBar" style="position:sticky;top:0;z-index:9999;background:#2E3A34;color:#fff;
+font:13px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:9px 14px;
+display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap">
+<strong style="letter-spacing:.06em">FREE DEMO</strong>
+<span style="opacity:.85">Every screen works. Your data is saved in this browser only.</span>
+<a href="https://www.etsy.com/listing/4557692076" target="_blank" rel="noopener" style="background:#7C8B6F;color:#fff;text-decoration:none;
+padding:6px 13px;border-radius:8px;font-weight:600;white-space:nowrap">Get the full app &rarr;</a>
+</div>
+<div class="app">
+  <aside>
+    <h1 class="logo">Money Dashboard<small>tarqu</small></h1>
+    <nav>
+      <button class="on" data-go="hub"><span class="ic">◆</span>Hub</button>
+      <button data-go="today"><span class="ic">◉</span>Today</button>
+      <button data-go="paycheck"><span class="ic">◔</span>Paycheck</button>
+      <button data-go="bills"><span class="ic">▤</span>Bills</button>
+      <button data-go="debt"><span class="ic">▽</span>Debt payoff</button>
+      <button data-go="funds"><span class="ic">◈</span>Funds</button>
+      <button data-go="pause"><span class="ic">⏸</span>Impulse pause</button>
+      <button data-go="subs"><span class="ic">↻</span>Subscriptions</button>
+      <button data-go="networth"><span class="ic">△</span>Net worth</button>
+      <button data-go="review"><span class="ic">▦</span>Review</button>
+    </nav>
+    <button class="quick" id="goQuick">+ Quick add</button>
+  </aside>
+
+  <main>
+    <!-- HUB -->
+    <section id="hub" class="on">
+      <h2 class="hi" id="greet">Hello.</h2>
+      <p>Your whole money life on one screen.</p>
+
+      <div class="safe" id="safeBox">
+        <div class="k">Safe to spend today</div>
+        <div class="v" id="safeV">$0</div>
+        <div class="meta" id="safeMeta">Set your paycheck to get started</div>
+        <div class="status"><span class="dot"></span><span id="statusT">Ready when you are</span></div>
+      </div>
+
+      <div class="hub">
+        <div class="tile" data-go="bills"><div class="k">Bills this cycle</div>
+          <div class="v" id="hBills">$0</div><div class="s" id="hBillsS">nothing added yet</div></div>
+        <div class="tile" data-go="debt"><div class="k">Debt left</div>
+          <div class="v" id="hDebt">$0</div><div class="s" id="hDebtS">add debts to see a payoff date</div></div>
+        <div class="tile" data-go="funds"><div class="k">Funds saved</div>
+          <div class="v" id="hFunds">$0</div><div class="s" id="hFundsS">no funds yet</div></div>
+        <div class="tile" data-go="subs"><div class="k">Subscriptions</div>
+          <div class="v" id="hSubs">$0</div><div class="s" id="hSubsS">each month</div></div>
+        <div class="tile" data-go="networth"><div class="k">Net worth</div>
+          <div class="v" id="hNet">$0</div><div class="s" id="hNetS">assets minus debts</div></div>
+        <div class="tile" data-go="pause"><div class="k">Impulse pauses</div>
+          <div class="v" id="hPause">0</div><div class="s">every pause is a win</div></div>
+      </div>
+    </section>
+
+    <!-- TODAY -->
+    <section id="today">
+      <h2 class="hi">Today</h2>
+      <p>Log it in seconds, then get on with your day.</p>
+
+      <div class="trio">
+        <div class="mini"><div class="k">Money in</div><div class="v in" id="mIn">$0</div></div>
+        <div class="mini"><div class="k">Money out</div><div class="v out" id="mOut">$0</div></div>
+        <div class="mini"><div class="k">Bills soon</div><div class="v" id="mBills">$0</div></div>
+      </div>
+
+      <div class="card">
+        <h3>Log a spend</h3>
+        <div class="row">
+          <input id="eName" type="text" placeholder="What was it" maxlength="30">
+          <input id="eAmt" class="sm" type="number" min="0" step="0.01" placeholder="0">
+          <button class="act btn" id="eAdd">Add</button>
+        </div>
+        <div class="f" style="margin-top:11px">
+          <select id="eCat">
+            <option>Groceries</option><option>Eating out</option><option>Transport</option>
+            <option>Fun</option><option>Health</option><option>Home</option>
+            <option>Impulse</option><option>Other</option>
+          </select>
+        </div>
+        <ul class="list" id="eList"></ul>
+        <div class="empty" id="eEmpty">Nothing logged in this cycle yet. No shame, just numbers.</div>
+      </div>
+    </section>
+
+    <!-- PAYCHECK -->
+    <section id="paycheck">
+      <h2 class="hi">Paycheck</h2>
+      <p>Your money, one pay cycle at a time. Easier than thinking in months.</p>
+      <div class="card">
+        <h3>Your cycle</h3>
+        <div class="two">
+          <div class="f"><label for="pAmt">Take home pay each cycle</label>
+            <input id="pAmt" type="number" min="0" step="1" placeholder="1600"></div>
+          <div class="f"><label for="pLen">How often you are paid</label>
+            <select id="pLen">
+              <option value="7">Every week</option>
+              <option value="14" selected>Every two weeks</option>
+              <option value="15">Twice a month</option>
+              <option value="30">Once a month</option>
+            </select></div>
+        </div>
+        <div class="two">
+          <div class="f"><label for="pStart">Last payday</label>
+            <input id="pStart" type="date"></div>
+          <div class="f"><label for="cur">Currency</label>
+            <select id="cur"><option>$</option><option>£</option><option>€</option>
+              <option>C$</option><option>A$</option><option>kr</option><option>₺</option></select></div>
+        </div>
+        <div class="note" id="cycleNote">Set a payday and the whole planner follows it.</div>
+      </div>
+    </section>
+
+    <!-- BILLS -->
+    <section id="bills">
+      <h2 class="hi">Bills</h2>
+      <p>No shame, just dates and amounts. These come off the top before spending money.</p>
+      <div class="card">
+        <h3>Add a bill</h3>
+        <div class="row">
+          <input id="bName" type="text" placeholder="Rent" maxlength="28">
+          <input id="bAmt" class="sm" type="number" min="0" step="1" placeholder="0">
+          <input id="bDay" class="sm" type="number" min="1" max="31" placeholder="Day">
+          <button class="act btn" id="bAdd">Add</button>
+        </div>
+        <ul class="list" id="bList"></ul>
+        <div class="empty" id="bEmpty">Add rent, phone, power. Anything that repeats.</div>
+      </div>
+    </section>
+
+    <!-- DEBT -->
+    <section id="debt">
+      <h2 class="hi">Debt payoff</h2>
+      <p>One debt at a time. The plan tells you where to aim, you just follow it.</p>
+
+      <div class="card">
+        <h3>Your plan</h3>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <span class="seg">
+            <button id="modeSnow" class="on">Snowball</button>
+            <button id="modeAva">Avalanche</button>
+          </span>
+          <span class="sub" id="modeHint">Smallest balance first. Quick wins keep you going.</span>
+        </div>
+        <div class="two" style="margin-top:14px">
+          <div class="f"><label for="dExtra">Extra you can put in each month</label>
+            <input id="dExtra" type="number" min="0" step="1" placeholder="0"></div>
+          <div class="f"><label>Debt free estimate</label>
+            <div class="big" id="dFree">Add a debt</div></div>
+        </div>
+        <div class="note" id="dNote">The estimate includes interest and assumes minimum payments plus your extra, aimed at one debt at a time.</div>
+      </div>
+
+      <div class="card">
+        <h3>Add a debt</h3>
+        <div class="row">
+          <input id="dName" type="text" placeholder="Credit card" maxlength="28">
+          <input id="dBal" class="sm" type="number" min="0" step="1" placeholder="Owed">
+          <input id="dRate" class="sm" type="number" min="0" step="0.1" placeholder="APR %">
+          <input id="dMin" class="sm" type="number" min="0" step="1" placeholder="Min">
+          <input id="dDue" class="sm" type="number" min="1" max="31" step="1" placeholder="Due day">
+          <input id="dLimit" class="sm" type="number" min="0" step="1" placeholder="Limit">
+          <button class="act btn" id="dAdd">Add</button>
+        </div>
+        <ul class="list" id="dList"></ul>
+        <div class="empty" id="dEmpty">Add each debt with what you owe, the rate and the minimum. For credit cards you can also add the due day and the limit, both optional.</div>
+      </div>
+
+      <div class="card">
+        <h3>Log a payment</h3>
+        <div class="row">
+          <select id="payWho"></select>
+          <input id="payAmt" class="sm" type="number" min="0" step="0.01" placeholder="0">
+          <button class="act btn" id="payAdd">Pay</button>
+        </div>
+        <div class="note" id="paidNote">Paid off so far, $0. Watching this number grow is the whole trick.</div>
+      </div>
+    </section>
+
+    <!-- FUNDS -->
+    <section id="funds">
+      <h2 class="hi">Sinking funds</h2>
+      <p>Save a little each cycle so the big things stop hurting.</p>
+      <div class="card">
+        <h3>Add a fund</h3>
+        <div class="row">
+          <input id="fName" type="text" placeholder="Car repair" maxlength="28">
+          <input id="fTarget" class="sm" type="number" min="0" step="1" placeholder="Goal">
+          <input id="fPer" class="sm" type="number" min="0" step="1" placeholder="Each">
+          <button class="act btn" id="fAdd">Add</button>
+        </div>
+        <ul class="list" id="fList"></ul>
+        <div class="empty" id="fEmpty">No funds yet. Try one for gifts, car or holidays.</div>
+      </div>
+    </section>
+
+    <!-- PAUSE -->
+    <section id="pause">
+      <h2 class="hi">Impulse pause</h2>
+      <p>Want it right now? Start the timer. If you still want it after, buy it on purpose.</p>
+      <div class="card pause">
+        <div class="clock" id="clock">20:00</div>
+        <p id="pauseMsg">Twenty minutes is usually enough for the urge to pass.</p>
+        <div class="pausebtns">
+          <button class="act" id="pStartBtn">Start pause</button>
+          <button class="ghost" id="pStopBtn">Reset</button>
+        </div>
+        <div class="note" id="pauseStat">Paused 0 times so far. Every pause is a small win.</div>
+      </div>
+    </section>
+
+    <!-- SUBS -->
+    <section id="subs">
+      <h2 class="hi">Subscriptions</h2>
+      <p>The quiet monthly drip. See it once, then trim it.</p>
+      <div class="card">
+        <h3>Add a subscription</h3>
+        <div class="row">
+          <input id="sName" type="text" placeholder="Streaming" maxlength="28">
+          <input id="sAmt" class="sm" type="number" min="0" step="0.01" placeholder="0">
+          <button class="act btn" id="sAdd">Add</button>
+        </div>
+        <ul class="list" id="sList"></ul>
+        <div class="empty" id="sEmpty">Nothing added. Most people forget two or three.</div>
+        <div class="trio" style="margin-top:16px;margin-bottom:0">
+          <div class="mini"><div class="k">Each month</div><div class="v" id="subM">$0</div></div>
+          <div class="mini"><div class="k">Each year</div><div class="v" id="subY">$0</div></div>
+          <div class="mini"><div class="k">Count</div><div class="v" id="subN">0</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NET WORTH -->
+    <section id="networth">
+      <h2 class="hi">Net worth</h2>
+      <p>What you own minus what you owe. One honest number, watched gently.</p>
+
+      <div class="trio">
+        <div class="mini"><div class="k">You own</div><div class="v in" id="nwOwn">$0</div></div>
+        <div class="mini"><div class="k">You owe</div><div class="v out" id="nwOwe">$0</div></div>
+        <div class="mini"><div class="k">Net worth</div><div class="v" id="nwNet">$0</div></div>
+      </div>
+
+      <div class="card">
+        <h3>What you own</h3>
+        <div class="row">
+          <input id="aName" type="text" placeholder="Savings account" maxlength="28">
+          <input id="aAmt" class="sm" type="number" min="0" step="1" placeholder="0">
+          <button class="act btn" id="aAdd">Add</button>
+        </div>
+        <ul class="list" id="aList"></ul>
+        <div class="empty" id="aEmpty">Add cash, savings, anything of value you want counted.</div>
+        <div class="note">What you owe comes straight from your Debt payoff list, nothing to enter twice.</div>
+      </div>
+
+      <div class="card">
+        <h3>Progress</h3>
+        <button class="ghost" id="nwSnap">Save a snapshot of today</button>
+        <ul class="list" id="nwList"></ul>
+        <div class="empty" id="nwEmpty">Save a snapshot now and then. The climb is the reward.</div>
+      </div>
+    </section>
+
+    <!-- REVIEW -->
+    <section id="review">
+      <h2 class="hi">Review</h2>
+      <p>Where it actually went this cycle.</p>
+      <div class="card">
+        <h3>Spending against plan</h3>
+        <div class="bar"><span id="planBar" style="width:0%"></span></div>
+        <div class="catrow sub"><span id="planL">$0 spent</span><span id="planR">$0 planned</span></div>
+        <div id="cats" style="margin-top:18px"></div>
+        <div class="empty" id="catsEmpty">Log a few spends and the picture builds itself.</div>
+      </div>
+      <div class="card">
+        <h3>Past cycles</h3>
+        <ul class="list" id="cycList"></ul>
+        <div class="empty" id="cycEmpty">When you start a new cycle the old one is kept here, so wins stay visible.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span id="savedNote">Saved in this browser automatically</span>
+    <span style="display:flex;gap:8px">
+      <button class="ghost" id="bkp">Back up</button>
+      <button class="ghost" id="rst">Restore</button>
+      <button class="ghost" id="newCycle">New cycle</button>
+    </span>
+  </footer>
+  <input type="file" id="rstFile" accept="application/json" hidden>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY="tarqu.moneyhub.v1";
+  var S={pay:0,len:14,start:"",cur:"$",bills:[],funds:[],subs:[],exps:[],pauses:0,
+         debts:[],debtMode:"snowball",extra:0,assets:[],nwHist:[],cycles:[]};
+  var $=function(i){return document.getElementById(i)};
+
+  // YEREL tarih. toISOString UTC verir ve gece yarisindan sonra bir onceki gunu
+  // dondurur, o yuzden kullanilmiyor.
+  function iso(d){
+    var m=d.getMonth()+1,day=d.getDate();
+    return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(day<10?"0":"")+day;
+  }
+  function today(){return iso(new Date())}
+  function parseD(s){var p=(s||"").split("-");return p.length===3?new Date(+p[0],+p[1]-1,+p[2]):null}
+  function money(n){
+    var neg=n<0,v=Math.round(Math.abs(n)*100)/100;
+    var s=v%1===0?v.toFixed(0):v.toFixed(2);
+    return (neg?"-":"")+S.cur+s.replace(/\B(?=(\d{3})+(?!\d))/g,",");
+  }
+  // --- cycle ---
+  function cycle(){
+    var st=parseD(S.start);
+    if(!st) return {start:null,end:null,left:1,day:1};
+    var now=new Date(); now.setHours(0,0,0,0);
+    var len=+S.len||14, s=new Date(st);
+    while(s.getTime()+len*864e5<=now.getTime()) s=new Date(s.getTime()+len*864e5);
+    var e=new Date(s.getTime()+(len-1)*864e5);
+    var left=Math.max(1,Math.round((e-now)/864e5)+1);
+    return {start:s,end:e,left:left,day:len-left+1};
+  }
+  function inCycle(day){
+    var c=cycle(); if(!c.start) return true;
+    var d=parseD(day); if(!d) return true;
+    return d>=c.start && d<=c.end;
+  }
+  // Alici ingilizce konusuyor. Varsayilan yerel ayar tarayiciya gore Turkce ay adi
+  // basiyordu, o yuzden dil sabitlendi.
+  var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  function fmtD(d){return d?MON[d.getMonth()]+" "+d.getDate():""}
+  function fmtIso(s){return fmtD(parseD(s))}
+
+  function totals(){
+    var c=cycle();
+    var perMonth=(30/(+S.len||14));
+    var billsCycle=S.bills.reduce(function(a,b){return a+(+b.amt||0)},0)/Math.max(perMonth,1);
+    var subsCycle=S.subs.reduce(function(a,b){return a+(+b.amt||0)},0)/Math.max(perMonth,1);
+    var fundsCycle=S.funds.reduce(function(a,f){return a+(+f.per||0)},0);
+    var spent=S.exps.filter(function(e){return inCycle(e.day)}).reduce(function(a,e){return a+(+e.amt||0)},0);
+    var todaySpent=S.exps.filter(function(e){return e.day===today()}).reduce(function(a,e){return a+(+e.amt||0)},0);
+    var pool=(+S.pay||0)-billsCycle-subsCycle-fundsCycle;
+    var perDay=pool>0?(pool-spent)/c.left:0;
+    return {c:c,bills:billsCycle,subs:subsCycle,funds:fundsCycle,spent:spent,
+            todaySpent:todaySpent,pool:pool,perDay:perDay};
+  }
+
+  // --- debt engine ---
+  function debtOrder(debts,mode){
+    return debts.slice().sort(function(a,b){
+      return mode==="avalanche" ? (+b.rate||0)-(+a.rate||0) : (+a.bal||0)-(+b.bal||0);
+    });
+  }
+  // Faiz dahil ay ay similasyon: herkese minimum, kalan butce siradaki hedefe.
+  // Butce faizi karsilamiyorsa null doner, 600 ay tavani tasma freni.
+  function debtSim(debts,mode,extra){
+    var ds=debts.map(function(d){return {bal:+d.bal||0,rate:+d.rate||0,min:+d.min||0}})
+                .filter(function(d){return d.bal>0});
+    if(!ds.length) return {months:0,paid:0};
+    var budget=ds.reduce(function(a,d){return a+d.min},0)+(+extra||0);
+    if(budget<=0) return null;
+    var months=0,paid=0;
+    while(months<600){
+      var owed=ds.filter(function(d){return d.bal>0.01});
+      if(!owed.length) return {months:months,paid:Math.round(paid*100)/100};
+      months++;
+      owed.forEach(function(d){d.bal+=d.bal*((d.rate/100)/12)});
+      var left=budget;
+      owed.forEach(function(d){
+        var p=Math.min(d.min,d.bal,left); d.bal-=p; left-=p; paid+=p;
+      });
+      var order=debtOrder(owed,mode);
+      for(var i=0;i<order.length&&left>0.005;i++){
+        var p2=Math.min(left,order[i].bal); order[i].bal-=p2; left-=p2; paid+=p2;
+      }
+    }
+    return null;
+  }
+
+  function load(){
+    try{var o=JSON.parse(localStorage.getItem(KEY)||"{}");
+      if(o&&typeof o==="object"){
+        S.pay=+o.pay||0; S.len=+o.len||14; S.start=o.start||""; S.cur=o.cur||"$";
+        S.bills=Array.isArray(o.bills)?o.bills:[]; S.funds=Array.isArray(o.funds)?o.funds:[];
+        S.subs=Array.isArray(o.subs)?o.subs:[]; S.exps=Array.isArray(o.exps)?o.exps:[];
+        S.pauses=+o.pauses||0;
+        S.debts=Array.isArray(o.debts)?o.debts:[];
+        S.debtMode=o.debtMode==="avalanche"?"avalanche":"snowball";
+        S.extra=+o.extra||0;
+        S.assets=Array.isArray(o.assets)?o.assets:[];
+        S.nwHist=Array.isArray(o.nwHist)?o.nwHist:[];
+        S.cycles=Array.isArray(o.cycles)?o.cycles:[];
+      }}catch(e){}
+  }
+  function save(){
+    try{localStorage.setItem(KEY,JSON.stringify(S))}
+    catch(e){$("savedNote").textContent="Could not save, storage is blocked"}
+  }
+
+  function li(name,right,onx,sub){
+    var l=document.createElement("li");
+    var a=document.createElement("span");
+    var n=document.createElement("span"); n.textContent=name; a.appendChild(n);
+    if(sub){var sp=document.createElement("span");sp.className="sub";sp.textContent="  "+sub;a.appendChild(sp)}
+    var b=document.createElement("span"); b.style.display="flex"; b.style.alignItems="center"; b.style.gap="4px";
+    var v=document.createElement("span"); v.className="amt"; v.textContent=right; b.appendChild(v);
+    if(onx){var x=document.createElement("button");x.className="x";x.textContent="×";
+      x.setAttribute("aria-label","Remove "+name);x.onclick=onx;b.appendChild(x)}
+    l.appendChild(a); l.appendChild(b); return l;
+  }
+
+  function render(){
+    var t=totals(), c=t.c;
+    var h=new Date().getHours();
+    $("greet").textContent=h<12?"Good morning.":h<18?"Good afternoon.":"Good evening.";
+
+    var safe=t.perDay-t.todaySpent, box=$("safeBox"), cls="", msg="You are steady.";
+    if(!S.pay){cls="";msg="Ready when you are"}
+    else if(safe<0){cls="over";msg="Over for today, tomorrow resets"}
+    else if(t.perDay>0&&safe<t.perDay*0.25){cls="warn";msg="Almost out for today"}
+    box.className="safe "+cls;
+    $("safeV").textContent=S.pay?money(safe):money(0);
+    $("statusT").textContent=msg;
+    $("safeMeta").textContent=S.pay&&c.start
+      ? money(t.perDay)+" a day  ·  "+fmtD(c.start)+" to "+fmtD(c.end)+"  ·  "+c.left+" days to payday"
+      : "Set your paycheck to get started";
+
+    $("mIn").textContent=money(+S.pay||0);
+    $("mOut").textContent=money(t.spent);
+    $("mBills").textContent=money(t.bills+t.subs);
+
+    // hub tiles
+    var debtLeft=S.debts.reduce(function(a,d){return a+(+d.bal||0)},0);
+    var fundsSaved=S.funds.reduce(function(a,f){return a+(+f.saved||0)},0);
+    var fundsTarget=S.funds.reduce(function(a,f){return a+(+f.target||0)},0);
+    var subsM=S.subs.reduce(function(a,s){return a+(+s.amt||0)},0);
+    var own=S.assets.reduce(function(a,x){return a+(+x.amt||0)},0);
+    var net=own-debtLeft;
+    $("hBills").textContent=money(t.bills);
+    $("hBillsS").textContent=S.bills.length?S.bills.length+(S.bills.length===1?" bill":" bills")+" each month":"nothing added yet";
+    $("hDebt").textContent=money(debtLeft);
+    var sim=debtSim(S.debts,S.debtMode,S.extra);
+    $("hDebtS").textContent=!S.debts.length?"add debts to see a payoff date"
+      :(sim&&sim.months?"debt free in about "+simLabel(sim.months):sim?"nothing owed":"payments under interest");
+    $("hFunds").textContent=money(fundsSaved);
+    $("hFundsS").textContent=fundsTarget?("of "+money(fundsTarget)+" saved up"):"no funds yet";
+    $("hSubs").textContent=money(subsM);
+    $("hSubsS").textContent=S.subs.length?S.subs.length+" each month":"each month";
+    $("hNet").textContent=money(net);
+    $("hNetS").textContent="assets minus debts";
+    $("hPause").textContent=S.pauses;
+
+    // expenses
+    var ul=$("eList"); ul.innerHTML="";
+    var cyc=S.exps.filter(function(e){return inCycle(e.day)});
+    cyc.slice().reverse().slice(0,10).forEach(function(e){
+      var i=S.exps.indexOf(e);
+      ul.appendChild(li(e.name,money(e.amt),function(){S.exps.splice(i,1);save();render()},e.cat));
+    });
+    $("eEmpty").style.display=cyc.length?"none":"block";
+
+    // bills
+    var bl=$("bList"); bl.innerHTML="";
+    S.bills.forEach(function(b,i){
+      bl.appendChild(li(b.name,money(b.amt),function(){S.bills.splice(i,1);save();render()},
+        b.day?("day "+b.day):""));
+    });
+    $("bEmpty").style.display=S.bills.length?"none":"block";
+
+    // debts
+    var dl=$("dList"); dl.innerHTML="";
+    var order=debtOrder(S.debts,S.debtMode);
+    order.forEach(function(d,pos){
+      var i=S.debts.indexOf(d);
+      var sub=(+d.rate||0)+"% APR · min "+money(+d.min||0);
+      if(d.due>=1)sub+=" · due day "+d.due;
+      if(d.limit>0){
+        var pct=Math.round(Math.min(999,(+d.bal||0)/d.limit*100));
+        sub+=" · "+pct+"% of limit"+(pct>=80?", high":"");
+      }
+      var row=li(d.name,money(d.bal),function(){S.debts.splice(i,1);save();render()},sub);
+      if(pos===0&&d.bal>0){
+        var f=document.createElement("span"); f.className="focus"; f.textContent="Focus here";
+        row.firstChild.appendChild(f);
+      }
+      if(d.due>=1&&d.bal>0){
+        var gap=(d.due-new Date().getDate()+31)%31;
+        if(gap<=5){
+          var w=document.createElement("span"); w.className="focus"; w.textContent="Due soon";
+          row.firstChild.appendChild(w);
+        }
+      }
+      dl.appendChild(row);
+    });
+    $("dEmpty").style.display=S.debts.length?"none":"block";
+    $("modeSnow").className=S.debtMode==="snowball"?"on":"";
+    $("modeAva").className=S.debtMode==="avalanche"?"on":"";
+    $("modeHint").textContent=S.debtMode==="avalanche"
+      ? "Highest interest first. Cheapest way out on paper."
+      : "Smallest balance first. Quick wins keep you going.";
+    $("dFree").textContent=!S.debts.length?"Add a debt"
+      :(sim&&sim.months?simLabel(sim.months):sim?"Debt free":"Add more extra");
+    $("dNote").textContent=(sim===null&&S.debts.length)
+      ? "Right now the payments do not cover the interest. Add a little extra each month and a date will appear."
+      : "The estimate includes interest and assumes minimum payments plus your extra, aimed at one debt at a time.";
+    var who=$("payWho"); who.innerHTML="";
+    S.debts.forEach(function(d,i){
+      var o=document.createElement("option"); o.value=i; o.textContent=d.name; who.appendChild(o);
+    });
+    var startSum=S.debts.reduce(function(a,d){return a+(+d.start||+d.bal||0)},0);
+    $("paidNote").textContent="Paid off so far, "+money(Math.max(0,startSum-debtLeft))
+      +". Watching this number grow is the whole trick.";
+
+    // funds
+    var fl=$("fList"); fl.innerHTML="";
+    S.funds.forEach(function(f,i){
+      var wrap=document.createElement("div");
+      var row=li(f.name,money(f.saved||0)+" / "+money(f.target),
+        function(){S.funds.splice(i,1);save();render()}, money(f.per)+" a cycle");
+      row.style.borderBottom="0"; row.style.paddingBottom="4px";
+      var bar=document.createElement("div"); bar.className="bar";
+      var sp=document.createElement("span");
+      sp.style.width=Math.min(100,(f.target?(f.saved||0)/f.target*100:0))+"%";
+      bar.appendChild(sp);
+      var add=document.createElement("button"); add.className="ghost";
+      add.textContent="Add "+money(f.per); add.style.padding="6px 11px"; add.style.fontSize="13px";
+      add.onclick=function(){f.saved=(+f.saved||0)+(+f.per||0);save();render()};
+      wrap.appendChild(row); wrap.appendChild(bar); wrap.appendChild(add);
+      wrap.style.padding="10px 0"; wrap.style.borderBottom="1px solid var(--line)";
+      fl.appendChild(wrap);
+    });
+    $("fEmpty").style.display=S.funds.length?"none":"block";
+
+    // subs
+    var sl=$("sList"); sl.innerHTML="";
+    S.subs.forEach(function(s,i){
+      sl.appendChild(li(s.name,money(s.amt)+" / mo",function(){S.subs.splice(i,1);save();render()}));
+    });
+    $("sEmpty").style.display=S.subs.length?"none":"block";
+    $("subM").textContent=money(subsM); $("subY").textContent=money(subsM*12); $("subN").textContent=S.subs.length;
+
+    // net worth
+    $("nwOwn").textContent=money(own);
+    $("nwOwe").textContent=money(debtLeft);
+    $("nwNet").textContent=money(net);
+    var al=$("aList"); al.innerHTML="";
+    S.assets.forEach(function(a,i){
+      al.appendChild(li(a.name,money(a.amt),function(){S.assets.splice(i,1);save();render()}));
+    });
+    $("aEmpty").style.display=S.assets.length?"none":"block";
+    var nl=$("nwList"); nl.innerHTML="";
+    S.nwHist.slice().reverse().slice(0,12).forEach(function(hh){
+      nl.appendChild(li(fmtIso(hh.day),money(hh.net),null,hh.day.slice(0,4)));
+    });
+    $("nwEmpty").style.display=S.nwHist.length?"none":"block";
+
+    // review
+    var planned=Math.max(t.pool,0);
+    var pct=planned>0?Math.min(100,t.spent/planned*100):0;
+    var pb=$("planBar"); pb.style.width=pct+"%";
+    pb.className=pct>=100?"over":(pct>=80?"warn":"");
+    $("planL").textContent=money(t.spent)+" spent";
+    $("planR").textContent=money(planned)+" planned";
+    var map={}; cyc.forEach(function(e){map[e.cat]=(map[e.cat]||0)+(+e.amt||0)});
+    var keys=Object.keys(map).sort(function(a,b){return map[b]-map[a]});
+    var box2=$("cats"); box2.innerHTML="";
+    var max=keys.length?map[keys[0]]:0;
+    keys.forEach(function(k){
+      var r=document.createElement("div"); r.className="catrow";
+      var l=document.createElement("span"); l.textContent=k;
+      var v=document.createElement("span"); v.className="amt"; v.textContent=money(map[k]);
+      r.appendChild(l); r.appendChild(v);
+      var bar=document.createElement("div"); bar.className="bar";
+      var sp=document.createElement("span"); sp.style.width=(max?map[k]/max*100:0)+"%";
+      if(k==="Impulse") sp.className="warn";
+      bar.appendChild(sp);
+      box2.appendChild(r); box2.appendChild(bar);
+    });
+    $("catsEmpty").style.display=keys.length?"none":"block";
+
+    // past cycles
+    var cl=$("cycList"); cl.innerHTML="";
+    S.cycles.slice().reverse().slice(0,12).forEach(function(cc){
+      cl.appendChild(li(fmtIso(cc.s)+" to "+fmtIso(cc.e),
+        money(cc.spent)+" of "+money(cc.planned),null,cc.s.slice(0,4)));
+    });
+    $("cycEmpty").style.display=S.cycles.length?"none":"block";
+
+    $("cycleNote").textContent=c.start
+      ? "This cycle runs "+fmtD(c.start)+" to "+fmtD(c.end)+". Next payday in "+c.left+" days."
+      : "Set a payday and the whole planner follows it.";
+    $("pauseStat").textContent="Paused "+S.pauses+(S.pauses===1?" time":" times")+" so far. Every pause is a small win.";
+  }
+  function simLabel(m){
+    if(m<12) return m+(m===1?" month":" months");
+    var y=Math.floor(m/12),r=m%12;
+    return y+(y===1?" year":" years")+(r?" "+r+(r===1?" month":" months"):"");
+  }
+
+  // ---- nav ----
+  var btns=document.querySelectorAll("nav button");
+  function go(id){
+    document.querySelectorAll("main section").forEach(function(s){s.classList.toggle("on",s.id===id)});
+    btns.forEach(function(b){b.classList.toggle("on",b.dataset.go===id)});
+    window.scrollTo(0,0);
+  }
+  btns.forEach(function(b){b.onclick=function(){go(b.dataset.go)}});
+  document.querySelectorAll(".hub .tile").forEach(function(tl){
+    tl.onclick=function(){go(tl.dataset.go)};
+  });
+  $("goQuick").onclick=function(){go("today");$("eName").focus()};
+
+  // ---- adders ----
+  function addExp(){
+    var n=$("eName").value.trim(),a=parseFloat($("eAmt").value);
+    if(!n||!(a>0))return;
+    S.exps.push({name:n,amt:a,cat:$("eCat").value,day:today()});
+    $("eName").value="";$("eAmt").value="";$("eName").focus();save();render();
+  }
+  function addBill(){
+    var n=$("bName").value.trim(),a=parseFloat($("bAmt").value),d=parseInt($("bDay").value,10);
+    if(!n||!(a>0))return;
+    S.bills.push({name:n,amt:a,day:(d>=1&&d<=31)?d:null});
+    $("bName").value="";$("bAmt").value="";$("bDay").value="";$("bName").focus();save();render();
+  }
+  function addDebt(){
+    var n=$("dName").value.trim(),b=parseFloat($("dBal").value),
+        r=parseFloat($("dRate").value),m=parseFloat($("dMin").value),
+        du=parseInt($("dDue").value,10),lim=parseFloat($("dLimit").value);
+    if(!n||!(b>0))return;
+    S.debts.push({name:n,bal:b,start:b,rate:r>0?r:0,min:m>0?m:0,
+      due:(du>=1&&du<=31)?du:null,limit:lim>0?lim:null});
+    $("dName").value="";$("dBal").value="";$("dRate").value="";$("dMin").value="";
+    $("dDue").value="";$("dLimit").value="";
+    $("dName").focus();save();render();
+  }
+  function addPay(){
+    var i=parseInt($("payWho").value,10),a=parseFloat($("payAmt").value);
+    if(!(a>0)||!S.debts[i])return;
+    S.debts[i].bal=Math.max(0,(+S.debts[i].bal||0)-a);
+    $("payAmt").value="";save();render();
+  }
+  function addFund(){
+    var n=$("fName").value.trim(),t=parseFloat($("fTarget").value),p=parseFloat($("fPer").value);
+    if(!n||!(t>0))return;
+    S.funds.push({name:n,target:t,per:p>0?p:0,saved:0});
+    $("fName").value="";$("fTarget").value="";$("fPer").value="";$("fName").focus();save();render();
+  }
+  function addSub(){
+    var n=$("sName").value.trim(),a=parseFloat($("sAmt").value);
+    if(!n||!(a>0))return;
+    S.subs.push({name:n,amt:a});
+    $("sName").value="";$("sAmt").value="";$("sName").focus();save();render();
+  }
+  function addAsset(){
+    var n=$("aName").value.trim(),a=parseFloat($("aAmt").value);
+    if(!n||!(a>=0))return;
+    S.assets.push({name:n,amt:a});
+    $("aName").value="";$("aAmt").value="";$("aName").focus();save();render();
+  }
+  $("eAdd").onclick=addExp; $("bAdd").onclick=addBill; $("dAdd").onclick=addDebt;
+  $("payAdd").onclick=addPay; $("fAdd").onclick=addFund; $("sAdd").onclick=addSub;
+  $("aAdd").onclick=addAsset;
+  $("eAmt").onkeydown=function(e){if(e.key==="Enter")addExp()};
+  $("bAmt").onkeydown=function(e){if(e.key==="Enter")addBill()};
+  $("dMin").onkeydown=function(e){if(e.key==="Enter")addDebt()};
+  $("dLimit").onkeydown=function(e){if(e.key==="Enter")addDebt()};
+  $("payAmt").onkeydown=function(e){if(e.key==="Enter")addPay()};
+  $("fPer").onkeydown=function(e){if(e.key==="Enter")addFund()};
+  $("sAmt").onkeydown=function(e){if(e.key==="Enter")addSub()};
+  $("aAmt").onkeydown=function(e){if(e.key==="Enter")addAsset()};
+
+  // ---- paycheck + debt inputs ----
+  $("pAmt").oninput=function(){S.pay=+this.value||0;save();render()};
+  $("pLen").onchange=function(){S.len=+this.value||14;save();render()};
+  $("pStart").onchange=function(){S.start=this.value;save();render()};
+  $("cur").onchange=function(){S.cur=this.value;save();render()};
+  $("dExtra").oninput=function(){S.extra=+this.value||0;save();render()};
+  $("modeSnow").onclick=function(){S.debtMode="snowball";save();render()};
+  $("modeAva").onclick=function(){S.debtMode="avalanche";save();render()};
+
+  // ---- net worth snapshot ----
+  $("nwSnap").onclick=function(){
+    var own=S.assets.reduce(function(a,x){return a+(+x.amt||0)},0);
+    var owe=S.debts.reduce(function(a,d){return a+(+d.bal||0)},0);
+    var t=today();
+    S.nwHist=S.nwHist.filter(function(hh){return hh.day!==t});
+    S.nwHist.push({day:t,net:Math.round((own-owe)*100)/100});
+    if(S.nwHist.length>36)S.nwHist=S.nwHist.slice(-36);
+    save();render();
+  };
+
+  // ---- impulse pause ----
+  var timer=null,left=1200;
+  function paint(){
+    var m=Math.floor(left/60),s=left%60;
+    $("clock").textContent=m+":"+(s<10?"0":"")+s;
+  }
+  $("pStartBtn").onclick=function(){
+    if(timer)return;
+    S.pauses++; save(); render();
+    $("pauseMsg").textContent="Breathe. The urge fades on its own, you do not have to fight it.";
+    timer=setInterval(function(){
+      left--; paint();
+      if(left<=0){clearInterval(timer);timer=null;left=1200;paint();
+        $("pauseMsg").textContent="Time is up. Still want it? Then buy it on purpose, that is allowed.";}
+    },1000);
+  };
+  $("pStopBtn").onclick=function(){
+    if(timer){clearInterval(timer);timer=null}
+    left=1200;paint();
+    $("pauseMsg").textContent="Twenty minutes is usually enough for the urge to pass.";
+  };
+
+  // ---- footer ----
+  $("newCycle").onclick=function(){
+    if(!confirm("Start a fresh cycle? Spending resets, this cycle is kept in Review. Bills, debts, funds and subscriptions stay."))return;
+    var t=totals(), c=t.c;
+    if(c.start){
+      S.cycles.push({s:iso(c.start),e:iso(c.end),planned:Math.round(Math.max(t.pool,0)*100)/100,
+                     spent:Math.round(t.spent*100)/100});
+      if(S.cycles.length>24)S.cycles=S.cycles.slice(-24);
+    }
+    S.exps=S.exps.filter(function(e){return !inCycle(e.day)});
+    if(c.end){var n=new Date(c.end.getTime()+864e5); S.start=iso(n); $("pStart").value=S.start}
+    save();render();
+  };
+  $("bkp").onclick=function(){
+    alert("Backup export is available in the full version.\n\nYour data stays saved in this browser meanwhile.");return;
+
+    var b=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
+    var a=document.createElement("a");a.href=URL.createObjectURL(b);
+    a.download="money-hub-backup.json";a.click();URL.revokeObjectURL(a.href);
+  };
+  $("rst").onclick=function(){$("rstFile").click()};
+  $("rstFile").onchange=function(){
+    var f=this.files&&this.files[0]; if(!f)return;
+    var r=new FileReader();
+    r.onload=function(){
+      try{
+        var o=JSON.parse(r.result);
+        S.pay=+o.pay||0;S.len=+o.len||14;S.start=o.start||"";S.cur=o.cur||"$";
+        S.bills=Array.isArray(o.bills)?o.bills:[];S.funds=Array.isArray(o.funds)?o.funds:[];
+        S.subs=Array.isArray(o.subs)?o.subs:[];S.exps=Array.isArray(o.exps)?o.exps:[];
+        S.pauses=+o.pauses||0;
+        S.debts=Array.isArray(o.debts)?o.debts:[];
+        S.debtMode=o.debtMode==="avalanche"?"avalanche":"snowball";
+        S.extra=+o.extra||0;
+        S.assets=Array.isArray(o.assets)?o.assets:[];
+        S.nwHist=Array.isArray(o.nwHist)?o.nwHist:[];
+        S.cycles=Array.isArray(o.cycles)?o.cycles:[];
+        fill(); save(); render();
+      }catch(e){alert("That file could not be read.")}
+    };
+    r.readAsText(f); this.value="";
+  };
+
+  function fill(){
+    $("pAmt").value=S.pay||""; $("pLen").value=S.len; $("cur").value=S.cur;
+    $("pStart").value=S.start||""; $("dExtra").value=S.extra||"";
+  }
+
+  load(); fill(); paint(); render();
+  window.__tarqu={S:S,totals:totals,cycle:cycle,money:money,debtSim:debtSim,debtOrder:debtOrder};
+})();
+</script>

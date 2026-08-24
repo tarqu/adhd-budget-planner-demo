@@ -1,0 +1,624 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>DEMO - My List</title>
+<style>
+  :root{
+    --bg:#FAF6F0; --card:#FFFFFF; --ink:#26332C; --muted:#78837B; --faint:#A4AEA6;
+    --pine:#2F5D45; --pine-d:#22432F; --pine-l:#E9F0EA;
+    --red:#B0483A; --red-l:#F8E9E6;
+    --gold:#B08A3E;
+    --line:#E7E0D6; --r:16px;
+    --serif:"Iowan Old Style",Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink)}
+  body{font:15.5px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .app{display:grid;grid-template-columns:212px 1fr;min-height:100vh;max-width:1180px;margin:0 auto}
+  /* sidebar */
+  aside{padding:26px 16px;border-right:1px solid var(--line)}
+  .logo{font-family:var(--serif);font-size:20px;letter-spacing:.2px;margin:0 0 3px;color:var(--pine-d)}
+  .logo small{display:block;font-family:inherit;font-size:10.5px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--faint);margin-top:5px}
+  nav{margin-top:26px;display:flex;flex-direction:column;gap:2px}
+  nav button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+    background:none;border:0;padding:9px 11px;border-radius:10px;font:inherit;
+    color:var(--muted);cursor:pointer}
+  nav button:hover{background:#F1EDE5;color:var(--ink)}
+  nav button.on{background:var(--pine-l);color:var(--pine-d);font-weight:600}
+  nav .ic{width:17px;text-align:center;flex:0 0 17px}
+  .quick{margin-top:20px;width:100%;background:var(--pine);color:#fff;border:0;
+    padding:11px;border-radius:11px;font:inherit;font-weight:600;cursor:pointer}
+  .quick:hover{background:var(--pine-d)}
+  .note{background:#F7F4EE;border-radius:11px;padding:13px 15px;font-size:14px;color:var(--muted);margin-top:13px}
+  /* main */
+  main{padding:26px 26px 60px}
+  .hi{font-family:var(--serif);font-size:23px;margin:0 0 3px;color:var(--pine-d)}
+  .hi + p{margin:0 0 20px;color:var(--muted);font-size:14.5px}
+  section{display:none} section.on{display:block}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:14px}
+  .card h3{font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
+    margin:0 0 14px;font-weight:600}
+  .safe{background:var(--pine-l);border:1px solid #D6E2D8;border-radius:var(--r);padding:26px 22px;margin-bottom:14px}
+  .safe .k{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--pine-d);opacity:.85}
+  .safe .v{font-family:var(--serif);font-size:57px;line-height:1;margin:7px 0 6px;color:var(--pine-d)}
+  .safe .meta{font-size:14px;color:var(--muted)}
+  .status{display:inline-flex;align-items:center;gap:7px;margin-top:13px;background:#fff;
+    border-radius:999px;padding:7px 14px;font-size:13.5px;font-weight:600;color:var(--pine-d)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--pine)}
+  .status.alert{color:var(--red)} .status.alert .dot{background:var(--red)}
+  .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+  .mini{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px}
+  .mini .k{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .mini .v{font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:3px}
+  .mini .s{font-size:12.5px;color:var(--faint);margin-top:3px}
+  .in{color:var(--pine-d)} .out{color:var(--red)}
+  .badge{display:inline-block;background:var(--red-l);color:var(--red);border-radius:999px;
+    padding:3px 10px;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    margin:0 6px 6px 0}
+  .badge.calm{background:var(--pine-l);color:var(--pine-d)}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+  input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;
+    font-size:15.5px;font-family:inherit;background:#fff;color:var(--ink)}
+  input:focus{outline:2px solid var(--pine);outline-offset:1px}
+  .row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}.row .sm{flex:0 0 110px}.row .btn{flex:0 0 auto}
+  button.act{background:var(--pine);color:#fff;border:0;border-radius:10px;padding:10px 16px;
+    font:inherit;font-weight:600;cursor:pointer}
+  button.act:hover{background:var(--pine-d)}
+  button.ghost{background:none;border:1px solid var(--line);color:var(--muted);border-radius:10px;
+    padding:9px 14px;font:inherit;cursor:pointer}
+  button.ghost:hover{background:#F2EEE7;color:var(--ink)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:14px}
+  .seg button{background:none;border:0;padding:8px 14px;font:inherit;color:var(--muted);cursor:pointer}
+  .seg button.on{background:var(--pine-l);color:var(--pine-d);font-weight:600}
+  ul.list{list-style:none;padding:0;margin:12px 0 0}
+  ul.list li{display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  ul.list li:last-child{border-bottom:0}
+  .gname{flex:1 1 150px;min-width:0;overflow-wrap:anywhere}
+  .gtools{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+  .gprice{width:96px;padding:7px 9px;font-size:14px}
+  .amt{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+  .sub{color:var(--muted);font-size:13px}
+  .tag{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;
+    font:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer}
+  .tag.done{background:var(--pine-l);border-color:#D6E2D8;color:var(--pine-d)}
+  .x{background:none;border:0;color:var(--faint);padding:2px 7px;font-size:17px;
+    border-radius:6px;cursor:pointer;line-height:1}
+  .x:hover{background:var(--red-l);color:var(--red)}
+  .bar{height:8px;background:#EFEAE1;border-radius:999px;overflow:hidden;margin:9px 0 4px}
+  .bar span{display:block;height:100%;background:var(--pine);border-radius:999px;transition:width .35s}
+  .bar span.warn{background:var(--gold)} .bar span.over{background:var(--red)}
+  .catrow{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+  .phead{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .phead .pname{font-family:var(--serif);font-size:19px;color:var(--pine-d)}
+  .empty{color:var(--faint);font-size:14px;padding:16px 0;text-align:center}
+  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  th,td{text-align:right;padding:10px 8px;border-bottom:1px solid var(--line);
+    font-variant-numeric:tabular-nums}
+  th:first-child,td:first-child{text-align:left;font-variant-numeric:normal}
+  th{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  tr.tot td{font-weight:700;border-bottom:0;border-top:2px solid var(--line)}
+  .wrap{display:flex;align-items:center;gap:10px}
+  .box{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--line);background:#fff;
+    cursor:pointer;flex:0 0 22px;padding:0;line-height:1;color:#fff;font-size:13px;font-weight:700}
+  .box.on{background:var(--pine);border-color:var(--pine)}
+  footer{grid-column:1/-1;border-top:1px solid var(--line);padding:16px 26px;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+    font-size:13px;color:var(--faint)}
+  @media(max-width:820px){
+    .app{grid-template-columns:1fr}
+    aside{border-right:0;border-bottom:1px solid var(--line)}
+    nav{flex-direction:row;flex-wrap:wrap}
+    nav button{padding:8px 10px}
+    .trio{grid-template-columns:1fr}
+    .safe .v{font-size:46px}
+    main{padding:22px 18px 50px}
+  }
+  @media(max-width:520px){
+    .hi{font-size:21px}
+    .safe .v{font-size:38px;line-height:1.12}
+    .gprice{width:78px}
+    th,td{padding:9px 5px;font-size:13.5px}
+    .row .sm{flex:1 1 100px}
+  }
+</style>
+<div id="demoBar" style="position:sticky;top:0;z-index:9999;background:#2E3A34;color:#fff;
+font:13px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:9px 14px;
+display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap">
+<strong style="letter-spacing:.06em">FREE DEMO</strong>
+<span style="opacity:.85">Every screen works. Your data is saved in this browser only.</span>
+<a href="https://www.etsy.com/listing/4561363061" target="_blank" rel="noopener" style="background:#7C8B6F;color:#fff;text-decoration:none;
+padding:6px 13px;border-radius:8px;font-weight:600;white-space:nowrap">Get the full app &rarr;</a>
+</div>
+<div class="app">
+<aside>
+  <h1 class="logo">Christmas List<small>tarqu</small></h1>
+  <nav>
+    <button class="on" data-go="over"><span class="ic">◆</span>Overview</button>
+    <button data-go="people"><span class="ic">◉</span>People</button>
+    <button data-go="gifts"><span class="ic">▤</span>Gifts</button>
+    <button data-go="budget"><span class="ic">▦</span>Budget</button>
+    <button data-go="wrap"><span class="ic">△</span>Wrap up</button>
+  </nav>
+  <button class="quick" data-go="people">+ Add a person</button>
+  <div class="note" style="font-size:12.5px">Everything stays in this browser. No account, no cloud, no subscription.</div>
+</aside>
+
+<main>
+<section id="over" class="on">
+  <h2 class="hi">Overview</h2>
+  <p id="overSub">Add the people you buy for and the list does the counting.</p>
+  <div class="safe">
+    <div class="k">Days to Christmas</div>
+    <div class="v" id="cdDays">0</div>
+    <div class="meta" id="cdNote">Counting down to the 25th of December.</div>
+    <div class="status" id="cdStatus"><span class="dot"></span><span id="cdTag">Plenty of time</span></div>
+  </div>
+  <div class="trio">
+    <div class="mini"><div class="k">Spent so far</div><div class="v in" id="sumSpent">$0</div>
+      <div class="s" id="sumSpentS">of $0 budget</div></div>
+    <div class="mini"><div class="k">Left to spend</div><div class="v" id="sumLeft">$0</div>
+      <div class="s" id="sumLeftS">across everyone</div></div>
+    <div class="mini"><div class="k">Still to buy</div><div class="v" id="sumToBuy">0</div>
+      <div class="s" id="sumToBuyS">0 gifts bought</div></div>
+  </div>
+  <div class="trio">
+    <div class="mini"><div class="k">People</div><div class="v" id="sumPeople">0</div>
+      <div class="s">on your list</div></div>
+    <div class="mini"><div class="k">Gifts</div><div class="v" id="sumGifts">0</div>
+      <div class="s" id="sumGiftsS">ideas and buys</div></div>
+    <div class="mini"><div class="k">Still to wrap</div><div class="v" id="sumWrap">0</div>
+      <div class="s">bought but not wrapped</div></div>
+  </div>
+  <div class="card"><h3>Budget check</h3>
+    <div id="overWarn"></div>
+    <div class="row" style="margin-top:12px"><button class="ghost btn" id="sampleBtn">Add sample family</button></div>
+  </div>
+</section>
+
+<section id="people">
+  <h2 class="hi">People</h2>
+  <p>One card per person. Add gift ideas under a name and mark them bought when the money leaves.</p>
+  <div class="card"><h3>Add a person</h3>
+    <div class="row">
+      <input id="pName" placeholder="Mum" aria-label="Name">
+      <input id="pBudget" class="sm" type="number" min="0" step="1" placeholder="150" aria-label="Budget">
+      <button class="act btn" id="pAdd">Add</button>
+    </div>
+    <div class="note" style="margin-top:12px">A budget is optional. Leave it empty and the person still tracks gifts.</div>
+  </div>
+  <div id="pList"></div>
+  <div class="empty" id="pEmpty">Nobody on the list yet.</div>
+</section>
+
+<section id="gifts">
+  <h2 class="hi">Gifts</h2>
+  <p>Every gift in one place. Tap the status to flip between idea and bought.</p>
+  <div class="seg" id="gFilter">
+    <button data-filter="all" class="on">All</button>
+    <button data-filter="todo">To buy</button>
+    <button data-filter="done">Bought</button>
+  </div>
+  <div class="card">
+    <ul class="list" id="gList"></ul>
+    <div class="empty" id="gEmpty">No gifts here yet.</div>
+  </div>
+</section>
+
+<section id="budget">
+  <h2 class="hi">Budget</h2>
+  <p>Set against each name so you can see who is running hot before the card bill lands.</p>
+  <div class="card">
+    <table>
+      <thead><tr><th>Person</th><th>Budget</th><th>Spent</th><th>Left</th><th>Status</th></tr></thead>
+      <tbody id="bBody"></tbody>
+      <tfoot><tr class="tot"><td>Everyone</td><td id="bTotBudget">$0</td><td id="bTotSpent">$0</td>
+        <td id="bTotLeft">$0</td><td id="bTotStatus">On track</td></tr></tfoot>
+    </table>
+    <div class="empty" id="bEmpty">Add a person to fill this table.</div>
+    <div class="note" id="bNote">Spent counts gifts you marked bought. Ideas stay out of it until you buy them.</div>
+  </div>
+  <div class="card"><h3>Still planned</h3>
+    <div class="catrow"><span>Ideas not bought yet</span><span class="amt" id="bPlanned">$0</span></div>
+    <div class="catrow" style="margin-top:6px"><span>Spent plus ideas</span><span class="amt" id="bProjected">$0</span></div>
+    <div class="note" id="bProjNote">If you buy every idea at the price you guessed, this is where you land.</div>
+  </div>
+</section>
+
+<section id="wrap">
+  <h2 class="hi">Wrap up</h2>
+  <p>Bought gifts land here. Tick each one as it goes under the tree.</p>
+  <div class="card"><h3>Wrapping list</h3>
+    <ul class="list" id="wList"></ul>
+    <div class="empty" id="wEmpty">Nothing bought yet, so nothing to wrap.</div>
+    <div class="note" id="wNote"></div>
+  </div>
+  <div class="card"><h3>Keeping it a surprise</h3>
+    <p class="sub" style="margin:0">This browser tab is called My List, not Christmas List, so a glance over your shoulder gives nothing away. Save it in a private window or a quiet bookmark folder if you share this computer.</p>
+  </div>
+</section>
+
+<footer>
+  <span>Christmas List Maker &middot; works offline in your browser</span>
+  <span>No account needed</span>
+</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+var KEY="tarqu.xmaslist.v1";
+var S={seq:1,people:[],gifts:[],filter:"all"};
+
+function $(id){return document.getElementById(id)}
+function num(v){var n=parseFloat(v);return isFinite(n)&&n>0?n:0}
+function money(v){
+  var neg=v<0, a=Math.round(Math.abs(v)*100)/100;
+  var s=a%1===0?a.toFixed(0):a.toFixed(2);
+  return (neg?"-":"")+"$"+s.replace(/\B(?=(\d{3})+(?!\d))/g,",");
+}
+// YEREL tarih farki. UTC tabanli gun hesabi saat dilimi yuzunden bir gun kayar,
+// o yuzden iki tarih de yerel gece yarisina indirgenip kiyaslanir.
+function daysToXmas(now){
+  var y=now.getFullYear();
+  if(now.getMonth()===11&&now.getDate()>25) y=y+1;
+  var target=new Date(y,11,25);
+  var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  return Math.round((target-today)/86400000);
+}
+function nextId(){var id=S.seq;S.seq=id+1;return id}
+function person(pid){
+  for(var i=0;i<S.people.length;i++) if(S.people[i].id===pid) return S.people[i];
+  return null;
+}
+function giftsOf(pid){
+  var out=[];
+  for(var i=0;i<S.gifts.length;i++) if(S.gifts[i].pid===pid) out.push(S.gifts[i]);
+  return out;
+}
+function spentOf(pid){
+  var t=0, g=giftsOf(pid);
+  for(var i=0;i<g.length;i++) if(g[i].bought) t=t+g[i].actual;
+  return t;
+}
+function plannedOf(pid){
+  var t=0, g=giftsOf(pid);
+  for(var i=0;i<g.length;i++) if(!g[i].bought) t=t+g[i].est;
+  return t;
+}
+
+function totals(){
+  var budget=0,spent=0,planned=0,bought=0,wrapped=0,over=[];
+  for(var i=0;i<S.people.length;i++){
+    var p=S.people[i], ps=spentOf(p.id);
+    budget=budget+p.budget; spent=spent+ps; planned=planned+plannedOf(p.id);
+    if(p.budget>0&&ps>p.budget) over.push({name:p.name,by:ps-p.budget});
+  }
+  for(var j=0;j<S.gifts.length;j++){
+    if(S.gifts[j].bought){bought=bought+1; if(S.gifts[j].wrapped) wrapped=wrapped+1}
+  }
+  return {budget:budget,spent:spent,planned:planned,left:budget-spent,
+          projected:spent+planned,bought:bought,wrapped:wrapped,
+          toBuy:S.gifts.length-bought,toWrap:bought-wrapped,over:over,
+          people:S.people.length,gifts:S.gifts.length};
+}
+
+function load(){
+  try{
+    var o=JSON.parse(localStorage.getItem(KEY)||"{}");
+    if(!o||typeof o!=="object") return;
+    var pl=Array.isArray(o.people)?o.people:[], gl=Array.isArray(o.gifts)?o.gifts:[];
+    var seen={}, top=0, i;
+    S.people=[];
+    for(i=0;i<pl.length;i++){
+      var p=pl[i]; if(!p||typeof p!=="object") continue;
+      var pid=parseInt(p.id,10); if(!isFinite(pid)||seen[pid]) continue;
+      seen[pid]=1; if(pid>top) top=pid;
+      S.people.push({id:pid,name:String(p.name||"").slice(0,40),budget:num(p.budget)});
+    }
+    S.gifts=[];
+    for(i=0;i<gl.length;i++){
+      var g=gl[i]; if(!g||typeof g!=="object") continue;
+      var gp=parseInt(g.pid,10);
+      if(!seen[gp]) continue;
+      var gid=parseInt(g.id,10); if(!isFinite(gid)) gid=++top;
+      if(gid>top) top=gid;
+      S.gifts.push({id:gid,pid:gp,what:String(g.what||"").slice(0,60),
+        est:num(g.est),actual:num(g.actual),bought:!!g.bought,wrapped:!!g.wrapped});
+    }
+    S.seq=top+1;
+    S.filter=(o.filter==="todo"||o.filter==="done")?o.filter:"all";
+  }catch(e){}
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+}
+
+function statusBtn(g){
+  var b=document.createElement("button");
+  b.className="tag"+(g.bought?" done":"");
+  b.textContent=g.bought?"Bought":"Idea";
+  b.setAttribute("aria-label","Change status of "+g.what);
+  b.onclick=function(){
+    g.bought=!g.bought;
+    if(g.bought&&!g.actual) g.actual=g.est;
+    if(!g.bought) g.wrapped=false;
+    save();render();
+  };
+  return b;
+}
+function priceInput(g){
+  var inp=document.createElement("input");
+  inp.type="number"; inp.min="0"; inp.step="0.01"; inp.className="gprice";
+  inp.value=g.bought?(g.actual||""):(g.est||"");
+  inp.placeholder=g.bought?"paid":"guess";
+  inp.setAttribute("aria-label",(g.bought?"Price paid for ":"Estimated price for ")+g.what);
+  inp.oninput=function(){
+    if(g.bought) g.actual=num(this.value); else g.est=num(this.value);
+    save();paint();
+  };
+  return inp;
+}
+function giftRow(g,withOwner){
+  var li=document.createElement("li");
+  var left=document.createElement("span"); left.className="gname";
+  var n=document.createElement("span"); n.textContent=g.what; left.appendChild(n);
+  if(withOwner){
+    var p=person(g.pid);
+    var s=document.createElement("span"); s.className="sub";
+    s.textContent="  for "+(p?p.name:"someone");
+    left.appendChild(s);
+  }
+  var tools=document.createElement("span"); tools.className="gtools";
+  tools.appendChild(priceInput(g));
+  tools.appendChild(statusBtn(g));
+  var x=document.createElement("button"); x.className="x"; x.textContent="×";
+  x.setAttribute("aria-label","Remove "+g.what);
+  x.onclick=function(){
+    for(var i=0;i<S.gifts.length;i++) if(S.gifts[i].id===g.id){S.gifts.splice(i,1);break}
+    save();render();
+  };
+  tools.appendChild(x);
+  li.appendChild(left); li.appendChild(tools);
+  return li;
+}
+
+function personCard(p){
+  var spent=spentOf(p.id), gs=giftsOf(p.id), bought=0, i;
+  for(i=0;i<gs.length;i++) if(gs[i].bought) bought=bought+1;
+  var pct=p.budget>0?Math.min(100,spent/p.budget*100):0;
+
+  var card=document.createElement("div"); card.className="card";
+  var head=document.createElement("div"); head.className="phead";
+  var nm=document.createElement("span"); nm.className="pname"; nm.textContent=p.name;
+  var right=document.createElement("span"); right.className="amt";
+  right.textContent=p.budget>0?(money(spent)+" of "+money(p.budget)):money(spent)+" spent";
+  if(p.budget>0&&spent>p.budget) right.className="amt out";
+  head.appendChild(nm); head.appendChild(right);
+  card.appendChild(head);
+
+  var bar=document.createElement("div"); bar.className="bar";
+  var fill=document.createElement("span"); fill.style.width=pct+"%";
+  if(p.budget>0&&spent>p.budget) fill.className="over";
+  else if(p.budget>0&&pct>=80) fill.className="warn";
+  bar.appendChild(fill); card.appendChild(bar);
+
+  var sub=document.createElement("div"); sub.className="sub";
+  sub.textContent=gs.length+(gs.length===1?" gift, ":" gifts, ")+bought+" bought"
+    +(p.budget>0
+        ? (spent>p.budget?", "+money(spent-p.budget)+" over budget":", "+money(p.budget-spent)+" left")
+        : ", no budget set");
+  card.appendChild(sub);
+
+  var ul=document.createElement("ul"); ul.className="list";
+  for(i=0;i<gs.length;i++) ul.appendChild(giftRow(gs[i],false));
+  card.appendChild(ul);
+  if(!gs.length){
+    var e=document.createElement("div"); e.className="empty";
+    e.textContent="No gift ideas for "+p.name+" yet."; card.appendChild(e);
+  }
+
+  var row=document.createElement("div"); row.className="row"; row.style.marginTop="12px";
+  var what=document.createElement("input"); what.placeholder="Gift idea";
+  what.setAttribute("aria-label","Gift idea for "+p.name);
+  var est=document.createElement("input"); est.className="sm"; est.type="number";
+  est.min="0"; est.step="0.01"; est.placeholder="40";
+  est.setAttribute("aria-label","Estimated price for "+p.name);
+  var add=document.createElement("button"); add.className="act btn"; add.textContent="Add gift";
+  function commit(){
+    var v=what.value.trim(); if(!v) return;
+    S.gifts.push({id:nextId(),pid:p.id,what:v.slice(0,60),est:num(est.value),
+      actual:0,bought:false,wrapped:false});
+    what.value=""; est.value=""; save(); render();
+  }
+  add.onclick=commit;
+  what.onkeydown=function(e){if(e.key==="Enter") commit()};
+  est.onkeydown=function(e){if(e.key==="Enter") commit()};
+  row.appendChild(what); row.appendChild(est); row.appendChild(add);
+  card.appendChild(row);
+
+  var del=document.createElement("button"); del.className="ghost";
+  del.style.marginTop="12px"; del.style.fontSize="13px"; del.style.padding="7px 12px";
+  del.textContent="Remove "+p.name;
+  del.onclick=function(){
+    if(!window.confirm("Remove "+p.name+" and every gift on that name?")) return;
+    for(var i=S.gifts.length-1;i>=0;i--) if(S.gifts[i].pid===p.id) S.gifts.splice(i,1);
+    for(var j=0;j<S.people.length;j++) if(S.people[j].id===p.id){S.people.splice(j,1);break}
+    save();render();
+  };
+  card.appendChild(del);
+  return card;
+}
+
+function paint(){
+  var t=totals(), d=daysToXmas(new Date());
+
+  $("cdDays").textContent=String(d);
+  $("cdStatus").className="status"+(t.over.length?" alert":"");
+  $("cdNote").textContent = d===0 ? "Christmas is today. Hope the wrapping is done."
+    : d===1 ? "One day to go."
+    : d+" days of shopping time left.";
+  $("cdTag").textContent = t.over.length
+    ? (t.over.length===1?"1 person over budget":t.over.length+" people over budget")
+    : (d>60?"Plenty of time":d>21?"Good pace":"Final stretch");
+  $("overSub").textContent = t.people
+    ? t.people+(t.people===1?" person, ":" people, ")+t.gifts+(t.gifts===1?" gift":" gifts")
+      +", "+money(t.spent)+" spent so far"
+    : "Add the people you buy for and the list does the counting.";
+
+  $("sumSpent").textContent=money(t.spent);
+  $("sumSpentS").textContent="of "+money(t.budget)+" budget";
+  $("sumLeft").textContent=money(t.left);
+  $("sumLeft").className="v"+(t.left<0?" out":" in");
+  $("sumLeftS").textContent=t.budget>0?"across everyone":"no budgets set yet";
+  $("sumToBuy").textContent=String(t.toBuy);
+  $("sumToBuyS").textContent=t.bought+(t.bought===1?" gift bought":" gifts bought");
+  $("sumPeople").textContent=String(t.people);
+  $("sumGifts").textContent=String(t.gifts);
+  $("sumGiftsS").textContent=money(t.planned)+" still only an idea";
+  $("sumWrap").textContent=String(t.toWrap);
+
+  var warn=$("overWarn"); warn.innerHTML="";
+  if(t.over.length){
+    for(var i=0;i<t.over.length;i++){
+      var b=document.createElement("span"); b.className="badge";
+      b.textContent=t.over[i].name+" over by "+money(t.over[i].by);
+      warn.appendChild(b);
+    }
+  }else{
+    var ok=document.createElement("span"); ok.className="badge calm";
+    ok.textContent=t.budget>0?"Everyone inside budget":"No budgets set yet";
+    warn.appendChild(ok);
+  }
+  $("sampleBtn").style.display=(t.people||t.gifts)?"none":"inline-block";
+
+  var pl=$("pList"); pl.innerHTML="";
+  for(var k=0;k<S.people.length;k++) pl.appendChild(personCard(S.people[k]));
+  $("pEmpty").style.display=S.people.length?"none":"block";
+
+  var segs=$("gFilter").children, f;
+  for(var q=0;q<segs.length;q++){
+    f=segs[q].getAttribute("data-filter");
+    segs[q].className=(f===S.filter)?"on":"";
+  }
+  var gl=$("gList"); gl.innerHTML=""; var shown=0;
+  for(var m=0;m<S.gifts.length;m++){
+    var g=S.gifts[m];
+    if(S.filter==="todo"&&g.bought) continue;
+    if(S.filter==="done"&&!g.bought) continue;
+    gl.appendChild(giftRow(g,true)); shown=shown+1;
+  }
+  $("gEmpty").style.display=shown?"none":"block";
+  $("gEmpty").textContent=S.gifts.length?"Nothing in this view.":"No gifts here yet.";
+
+  var body=$("bBody"); body.innerHTML="";
+  for(var n=0;n<S.people.length;n++){
+    var p=S.people[n], sp=spentOf(p.id), lf=p.budget-sp;
+    var tr=document.createElement("tr");
+    var cells=[p.name,p.budget>0?money(p.budget):"none",money(sp),
+               p.budget>0?money(lf):"",p.budget>0?(sp>p.budget?"Over":(sp>=p.budget*0.8?"Close":"On track")):"No budget"];
+    for(var c=0;c<cells.length;c++){
+      var td=document.createElement("td"); td.textContent=cells[c];
+      if(p.budget>0&&sp>p.budget&&(c===3||c===4)) td.className="out";
+      tr.appendChild(td);
+    }
+    body.appendChild(tr);
+  }
+  $("bEmpty").style.display=S.people.length?"none":"block";
+  $("bTotBudget").textContent=money(t.budget);
+  $("bTotSpent").textContent=money(t.spent);
+  $("bTotLeft").textContent=money(t.left);
+  $("bTotStatus").textContent=t.budget>0?(t.spent>t.budget?"Over":"On track"):"No budget";
+  $("bTotLeft").className=t.left<0?"out":"";
+  $("bPlanned").textContent=money(t.planned);
+  $("bProjected").textContent=money(t.projected);
+  $("bProjNote").textContent=t.budget>0
+    ? (t.projected>t.budget
+        ? "Buying every idea at your guessed prices puts you "+money(t.projected-t.budget)+" over the total budget."
+        : "Buying every idea at your guessed prices leaves "+money(t.budget-t.projected)+" of the total budget.")
+    : "Set a budget on a person and this line tells you where you land.";
+
+  var wl=$("wList"); wl.innerHTML=""; var wc=0;
+  for(var w=0;w<S.gifts.length;w++){
+    var gg=S.gifts[w]; if(!gg.bought) continue;
+    wc=wc+1;
+    var li=document.createElement("li");
+    var lft=document.createElement("span"); lft.className="wrap";
+    var box=document.createElement("button");
+    box.className="box"+(gg.wrapped?" on":""); box.textContent=gg.wrapped?"✓":"";
+    box.setAttribute("aria-label","Mark "+gg.what+" as wrapped");
+    box.onclick=(function(gift){return function(){gift.wrapped=!gift.wrapped;save();render()}})(gg);
+    var lbl=document.createElement("span");
+    var pp=person(gg.pid);
+    lbl.textContent=gg.what;
+    var who=document.createElement("span"); who.className="sub";
+    who.textContent="  for "+(pp?pp.name:"someone");
+    lbl.appendChild(who);
+    lft.appendChild(box); lft.appendChild(lbl);
+    var amt=document.createElement("span"); amt.className="amt"; amt.textContent=money(gg.actual);
+    li.appendChild(lft); li.appendChild(amt);
+    wl.appendChild(li);
+  }
+  $("wEmpty").style.display=wc?"none":"block";
+  $("wNote").textContent=wc
+    ? (t.toWrap===0?"Every bought gift is wrapped. Nothing left on this list."
+       :t.toWrap+(t.toWrap===1?" gift still needs paper.":" gifts still need paper."))
+    : "Mark a gift as bought and it shows up here.";
+}
+var render=paint;
+
+function go(id){
+  var secs=document.querySelectorAll("main section");
+  for(var i=0;i<secs.length;i++) secs[i].className=(secs[i].id===id)?"on":"";
+  var bs=document.querySelectorAll("nav button");
+  for(var j=0;j<bs.length;j++) bs[j].className=(bs[j].getAttribute("data-go")===id)?"on":"";
+  window.scrollTo(0,0);
+}
+document.addEventListener("click",function(e){
+  var el=e.target.closest?e.target.closest("[data-go]"):null;
+  if(el) go(el.getAttribute("data-go"));
+});
+
+function addPerson(name,budget){
+  var id=nextId();
+  S.people.push({id:id,name:String(name).slice(0,40),budget:num(budget)});
+  return id;
+}
+function addGift(pid,what,est,bought,actual){
+  S.gifts.push({id:nextId(),pid:pid,what:String(what).slice(0,60),est:num(est),
+    actual:num(actual),bought:!!bought,wrapped:false});
+}
+function sample(){
+  var mum=addPerson("Mum",150), dad=addPerson("Dad",150),
+      sis=addPerson("Sister",100), kid=addPerson("Nephew",80);
+  addGift(mum,"Wool scarf",45,true,52);
+  addGift(mum,"Tea sampler",25,false,0);
+  addGift(dad,"Grill tongs",30,false,0);
+  addGift(dad,"Football tickets",90,false,0);
+  addGift(sis,"Skincare set",60,true,58);
+  addGift(kid,"Dinosaur puzzle",22,false,0);
+  save();render();go("people");
+}
+
+function wire(){
+  $("pAdd").onclick=function(){
+    var n=$("pName").value.trim(); if(!n) return;
+    addPerson(n,$("pBudget").value);
+    $("pName").value=""; $("pBudget").value="";
+    save();render();
+  };
+  $("pName").onkeydown=function(e){if(e.key==="Enter") $("pAdd").click()};
+  $("pBudget").onkeydown=function(e){if(e.key==="Enter") $("pAdd").click()};
+  var segs=$("gFilter").children;
+  for(var i=0;i<segs.length;i++){
+    segs[i].addEventListener("click",function(){
+      S.filter=this.getAttribute("data-filter"); save(); render();
+    });
+  }
+  $("sampleBtn").onclick=sample;
+}
+
+load(); wire(); render();
+window.__xmas={S:S,totals:totals,daysToXmas:daysToXmas,money:money,
+  load:load,save:save,render:render,sample:sample};
+})();
+</script>

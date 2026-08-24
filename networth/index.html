@@ -1,0 +1,520 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>DEMO - Net Worth Tracker</title>
+<style>
+  :root{
+    --bg:#FAF6F0; --card:#FFFFFF; --ink:#2E3A34; --muted:#7C857E; --faint:#A6AFA6;
+    --sage:#7C8B6F; --sage-d:#57654C; --sage-l:#EDF1E8;
+    --terra:#D08B6C; --terra-l:#FBEEE6; --red:#C4553B; --red-l:#F8E7E3;
+    --line:#E8E1D7; --r:16px;
+    --serif:"Iowan Old Style",Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink)}
+  body{font:15.5px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .app{display:grid;grid-template-columns:212px 1fr;min-height:100vh;max-width:1180px;margin:0 auto}
+  /* ---- sidebar ---- */
+  aside{padding:26px 16px;border-right:1px solid var(--line)}
+  .logo{font-family:var(--serif);font-size:20px;letter-spacing:.2px;margin:0 0 3px}
+  .logo small{display:block;font-family:inherit;font-size:10.5px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--faint);margin-top:5px}
+  nav{margin-top:26px;display:flex;flex-direction:column;gap:2px}
+  nav button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+    background:none;border:0;padding:9px 11px;border-radius:10px;font:inherit;
+    color:var(--muted);cursor:pointer}
+  nav button:hover{background:#F1EDE5;color:var(--ink)}
+  nav button.on{background:var(--sage-l);color:var(--sage-d);font-weight:600}
+  nav .ic{width:17px;text-align:center;flex:0 0 17px}
+  .quick{margin-top:20px;width:100%;background:var(--sage);color:#fff;border:0;
+    padding:11px;border-radius:11px;font:inherit;font-weight:600;cursor:pointer}
+  .quick:hover{background:var(--sage-d)}
+  /* ---- main ---- */
+  main{padding:26px 26px 60px}
+  .hi{font-family:var(--serif);font-size:23px;margin:0 0 3px}
+  .hi + p{margin:0 0 20px;color:var(--muted);font-size:14.5px}
+  section{display:none} section.on{display:block}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:14px}
+  .card h3{font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
+    margin:0 0 14px;font-weight:600}
+  .safe{background:var(--sage-l);border:1px solid #DCE4D4;border-radius:var(--r);padding:26px 22px;margin-bottom:14px}
+  .safe .k{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--sage-d);opacity:.85}
+  .safe .v{font-family:var(--serif);font-size:57px;line-height:1;margin:7px 0 6px;color:var(--sage-d)}
+  .safe.warn{background:var(--terra-l);border-color:#F0DCCE}
+  .safe.warn .v,.safe.warn .k{color:#A55F3C}
+  .safe.over{background:var(--red-l);border-color:#F1D4CD}
+  .safe.over .v,.safe.over .k{color:var(--red)}
+  .safe .meta{font-size:14px;color:var(--muted)}
+  .status{display:inline-flex;align-items:center;gap:7px;margin-top:13px;background:#fff;
+    border-radius:999px;padding:7px 14px;font-size:13.5px;font-weight:600;color:var(--sage-d)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--sage)}
+  .safe.warn .dot{background:var(--terra)} .safe.warn .status{color:#A55F3C}
+  .safe.over .dot{background:var(--red)} .safe.over .status{color:var(--red)}
+  .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+  .mini{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px}
+  .mini .k{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .mini .v{font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:3px}
+  .in{color:var(--sage-d)} .out{color:var(--red)}
+  /* hub grid */
+  .hub{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .hub .tile{background:var(--card);border:1px solid var(--line);border-radius:13px;
+    padding:16px;cursor:pointer;transition:border-color .15s}
+  .hub .tile:hover{border-color:var(--sage)}
+  .hub .k{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .hub .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:4px}
+  .hub .s{font-size:12.5px;color:var(--faint);margin-top:3px}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+  input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;
+    font-size:15.5px;font-family:inherit;background:#fff;color:var(--ink)}
+  input:focus,select:focus{outline:2px solid var(--sage);outline-offset:1px}
+  .f{margin-bottom:13px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row{display:flex;gap:8px}.row>*{flex:1}.row .sm{flex:0 0 96px}.row .btn{flex:0 0 auto}
+  button.act{background:var(--sage);color:#fff;border:0;border-radius:10px;padding:10px 16px;
+    font:inherit;font-weight:600;cursor:pointer}
+  button.act:hover{background:var(--sage-d)}
+  button.ghost{background:none;border:1px solid var(--line);color:var(--muted);border-radius:10px;
+    padding:9px 14px;font:inherit;cursor:pointer}
+  button.ghost:hover{background:#F2EEE7;color:var(--ink)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .seg button{background:none;border:0;padding:8px 14px;font:inherit;color:var(--muted);cursor:pointer}
+  .seg button.on{background:var(--sage-l);color:var(--sage-d);font-weight:600}
+  ul.list{list-style:none;padding:0;margin:12px 0 0}
+  ul.list li{display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:10px 0;border-bottom:1px solid var(--line)}
+  ul.list li:last-child{border-bottom:0}
+  .amt{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+  .x{background:none;border:0;color:var(--faint);padding:2px 7px;font-size:17px;
+    border-radius:6px;cursor:pointer;line-height:1}
+  .x:hover{background:var(--red-l);color:var(--red)}
+  .sub{color:var(--muted);font-size:13px}
+  .bar{height:8px;background:#EFEAE1;border-radius:999px;overflow:hidden;margin:8px 0 3px}
+  .bar span{display:block;height:100%;background:var(--sage);border-radius:999px;transition:width .35s}
+  .bar span.warn{background:var(--terra)} .bar span.over{background:var(--red)}
+  .catrow{display:flex;justify-content:space-between;font-size:14px}
+  .empty{color:var(--faint);font-size:14px;padding:16px 0;text-align:center}
+  .focus{display:inline-block;background:var(--sage-l);color:var(--sage-d);border-radius:999px;
+    padding:3px 10px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    margin-left:8px}
+  /* impulse pause */
+  .pause{text-align:center;padding:30px 20px}
+  .clock{font-family:var(--serif);font-size:62px;line-height:1;color:var(--sage-d);
+    font-variant-numeric:tabular-nums}
+  .pause p{color:var(--muted);max-width:400px;margin:12px auto 0}
+  .pausebtns{display:flex;gap:9px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+  .note{background:#F7F4EE;border-radius:11px;padding:13px 15px;font-size:14px;color:var(--muted);margin-top:13px}
+  .big{font-family:var(--serif);font-size:38px;color:var(--sage-d);line-height:1.1}
+  footer{grid-column:1/-1;border-top:1px solid var(--line);padding:16px 26px;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+    font-size:13px;color:var(--faint)}
+  @media(max-width:820px){
+    .app{grid-template-columns:1fr}
+    aside{border-right:0;border-bottom:1px solid var(--line)}
+    nav{flex-direction:row;flex-wrap:wrap}
+    nav button{padding:8px 10px}
+    .trio,.hub{grid-template-columns:1fr}
+    .two{grid-template-columns:1fr}
+    .safe .v{font-size:46px}
+  }
+  @media(max-width:520px){
+    .safe .v.big{font-size:30px;line-height:1.12}
+    .big{overflow-wrap:anywhere}
+    .hi{font-size:21px}
+  }
+</style>
+<div id="demoBar" style="position:sticky;top:0;z-index:9999;background:#2E3A34;color:#fff;
+font:13px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:9px 14px;
+display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap">
+<strong style="letter-spacing:.06em">FREE DEMO</strong>
+<span style="opacity:.85">Every screen works. Your data is saved in this browser only.</span>
+<a href="https://www.etsy.com/listing/4559656618" target="_blank" rel="noopener" style="background:#7C8B6F;color:#fff;text-decoration:none;
+padding:6px 13px;border-radius:8px;font-weight:600;white-space:nowrap">Get the full app &rarr;</a>
+</div>
+<div class="app">
+<aside>
+  <h1 class="logo">Net Worth<small>What you own, what you owe</small></h1>
+  <nav>
+    <button class="on" data-go="now"><span class="ic">◆</span>Right now</button>
+    <button data-go="assets"><span class="ic">▲</span>What you own</button>
+    <button data-go="debts"><span class="ic">▽</span>What you owe</button>
+    <button data-go="history"><span class="ic">▤</span>History</button>
+    <button data-go="mix"><span class="ic">◈</span>Where it sits</button>
+    <button data-go="goal"><span class="ic">△</span>Goal</button>
+  </nav>
+  <button class="quick" id="snapBtn">Save today's snapshot</button>
+  <div class="note" style="margin-top:16px;font-size:12.5px">Everything stays in this browser. No account, no cloud, no subscription.</div>
+</aside>
+
+<main>
+<section id="now" class="on">
+  <h2 class="hi">Right now</h2>
+  <p id="nowSub">Add what you own and what you owe to see your number.</p>
+  <div class="safe" id="nwBox">
+    <div class="k" style="font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)">Net worth today</div>
+    <div class="v big" id="nwV">0</div>
+    <div class="meta" id="nwMeta">Nothing added yet.</div>
+    <div class="status"><span class="dot"></span><span id="nwTag">Getting started</span></div>
+  </div>
+  <div class="trio">
+    <div class="mini"><div class="k">You own</div><div class="v in" id="mAssets">0</div></div>
+    <div class="mini"><div class="k">You owe</div><div class="v out" id="mDebts">0</div></div>
+    <div class="mini"><div class="k">Change this month</div><div class="v" id="mChange">0</div></div>
+  </div>
+  <div class="card"><h3>The last twelve snapshots</h3>
+    <div id="chart"></div>
+    <div class="note" id="chartNote">Save a snapshot each month and the line appears here.</div>
+  </div>
+</section>
+
+<section id="assets">
+  <h2 class="hi">What you own</h2>
+  <p>Cash, savings, investments, property, anything with a value you could name today.</p>
+  <div class="card"><h3>Add an asset</h3>
+    <div class="row" style="flex-wrap:wrap;gap:9px">
+      <input id="asName" placeholder="Savings account" aria-label="Asset name">
+      <input id="asAmt" class="sm" type="number" min="0" step="0.01" placeholder="3800" aria-label="Value">
+      <select id="asCat" class="sm" aria-label="Type">
+        <option value="Cash">Cash</option><option value="Savings">Savings</option>
+        <option value="Investments">Investments</option><option value="Retirement">Retirement</option>
+        <option value="Property">Property</option><option value="Vehicle">Vehicle</option>
+        <option value="Other">Other</option></select>
+      <button class="act btn" id="asAdd">Add</button>
+    </div>
+    <ul class="list" id="asList"></ul>
+    <div class="empty" id="asEmpty">Nothing added yet.</div>
+  </div>
+</section>
+
+<section id="debts">
+  <h2 class="hi">What you owe</h2>
+  <p>Every balance you still have to pay off. Honest numbers make the chart useful.</p>
+  <div class="card"><h3>Add a debt</h3>
+    <div class="row" style="flex-wrap:wrap;gap:9px">
+      <input id="dbName" placeholder="Credit card" aria-label="Debt name">
+      <input id="dbAmt" class="sm" type="number" min="0" step="0.01" placeholder="1840" aria-label="Balance">
+      <select id="dbCat" class="sm" aria-label="Type">
+        <option value="Credit card">Credit card</option><option value="Loan">Loan</option>
+        <option value="Mortgage">Mortgage</option><option value="Student">Student</option>
+        <option value="Family">Family</option><option value="Other">Other</option></select>
+      <button class="act btn" id="dbAdd">Add</button>
+    </div>
+    <ul class="list" id="dbList"></ul>
+    <div class="empty" id="dbEmpty">Nothing added yet.</div>
+  </div>
+</section>
+
+<section id="history">
+  <h2 class="hi">History</h2>
+  <p>One snapshot a month is enough. The gap between the first and the last is the story.</p>
+  <div class="card"><h3>Saved snapshots</h3>
+    <div class="row" style="margin-bottom:6px"><button class="act btn" id="snapBtn2">Save today's snapshot</button></div>
+    <ul class="list" id="hsList"></ul>
+    <div class="empty" id="hsEmpty">No snapshots yet.</div>
+  </div>
+  <div class="two">
+    <div class="mini"><div class="k">Average change a month</div><div class="v" id="mAvg">0</div></div>
+    <div class="mini"><div class="k">Since your first snapshot</div><div class="v" id="mSince">0</div></div>
+  </div>
+</section>
+
+<section id="mix">
+  <h2 class="hi">Where it sits</h2>
+  <p>Two piles, side by side, so you can see what is actually holding your number up.</p>
+  <div class="card"><h3>What you own, by type</h3>
+    <div id="mixAssets"></div>
+    <div class="empty" id="mixAEmpty">Nothing added yet.</div>
+  </div>
+  <div class="card"><h3>What you owe, by type</h3>
+    <div id="mixDebts"></div>
+    <div class="empty" id="mixDEmpty">Nothing added yet.</div>
+  </div>
+</section>
+
+<section id="goal">
+  <h2 class="hi">Goal</h2>
+  <p>Pick a number to aim at. The app works out when you get there at your current pace.</p>
+  <div class="card"><h3>Your target</h3>
+    <div class="two">
+      <div class="f"><label for="goalV">Net worth target</label><input id="goalV" type="number" step="1" placeholder="50000"></div>
+      <div class="f"><label for="cur">Currency symbol</label><input id="cur" maxlength="3" placeholder="$"></div>
+    </div>
+    <div class="note" id="goalNote">Add a target and at least two snapshots to see an estimate.</div>
+    <div class="bar" style="margin-top:14px"><span id="goalBar" style="width:0%"></span></div>
+    <div class="catrow"><span class="sub" id="goalNow">0</span><span class="sub" id="goalTarget">0</span></div>
+  </div>
+  <div class="card"><h3>Milestones</h3>
+    <ul class="list" id="msList"></ul>
+  </div>
+  <div class="card"><h3>Your data</h3>
+    <p class="sub" style="margin:0 0 12px">This app saves to your own browser only. Nothing is uploaded.</p>
+    <div class="row" style="flex-wrap:wrap;gap:9px">
+      <button class="ghost btn" id="expBtn">Export a backup file</button>
+      <button class="ghost btn" id="impBtn">Restore from backup</button>
+      <button class="ghost btn" id="resetBtn">Clear everything</button>
+    </div>
+    <input id="impFile" type="file" accept="application/json" style="display:none">
+    <div class="note" id="savedNote">Saved automatically.</div>
+  </div>
+</section>
+
+<footer>
+  <span>Net Worth Tracker &middot; works offline in your browser</span>
+  <span>No account needed</span>
+</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+var KEY="tarqu.networth.v1";
+var S={assets:[],debts:[],snaps:[],goal:0,cur:"$"};
+function $(id){return document.getElementById(id)}
+function num(v){var n=parseFloat(v);return isFinite(n)?n:0}
+function pos(v){var n=parseFloat(v);return isFinite(n)&&n>0?n:0}
+function money(v){
+  var neg=v<0, a=Math.round(Math.abs(v)*100)/100;
+  var s=a%1===0?a.toFixed(0):a.toFixed(2);
+  return (neg?"-":"")+S.cur+s.replace(/\B(?=(\d{3})+(?!\d))/g,",");
+}
+function sum(a,f){var t=0;for(var i=0;i<a.length;i++)t+=f(a[i]);return t}
+function iso(d){var m=d.getMonth()+1,x=d.getDate();
+  return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(x<10?"0":"")+x}
+
+function totals(){
+  var A=sum(S.assets,function(x){return x.amt});
+  var D=sum(S.debts,function(x){return x.amt});
+  var net=A-D;
+  var s=S.snaps;
+  var change = s.length ? net - s[s.length-1].net : 0;
+  var since  = s.length ? net - s[0].net : 0;
+  var avg = s.length>1 ? (s[s.length-1].net - s[0].net)/(s.length-1) : 0;
+  return {A:A,D:D,net:net,change:change,since:since,avg:avg};
+}
+function pace(){
+  // aylik hiz: en az iki snapshot, son ile ilk arasi fark bolu aralik sayisi
+  var s=S.snaps;
+  if(s.length<2) return 0;
+  return (s[s.length-1].net - s[0].net)/(s.length-1);
+}
+function monthsToGoal(){
+  var t=totals(), p=pace();
+  if(!S.goal || t.net>=S.goal) return 0;
+  if(p<=0) return null;
+  return Math.ceil((S.goal-t.net)/p);
+}
+
+function load(){
+  try{var o=JSON.parse(localStorage.getItem(KEY)||"{}");
+    if(o&&typeof o==="object"){
+      S.assets=Array.isArray(o.assets)?o.assets:[];
+      S.debts=Array.isArray(o.debts)?o.debts:[];
+      S.snaps=Array.isArray(o.snaps)?o.snaps:[];
+      S.goal=num(o.goal);
+      S.cur=(typeof o.cur==="string"&&o.cur)?o.cur.slice(0,3):"$";
+    }}catch(e){}
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(S));if($("savedNote"))$("savedNote").textContent="Saved automatically."}
+  catch(e){if($("savedNote"))$("savedNote").textContent="Could not save, this browser is blocking storage."}
+}
+function li(name,right,onx,sub){
+  var l=document.createElement("li");
+  var a=document.createElement("span");
+  var n=document.createElement("span"); n.textContent=name; a.appendChild(n);
+  if(sub){var sp=document.createElement("span");sp.className="sub";sp.textContent="  "+sub;a.appendChild(sp)}
+  var b=document.createElement("span"); b.style.display="flex"; b.style.alignItems="center"; b.style.gap="4px";
+  var v=document.createElement("span"); v.className="amt"; v.textContent=right; b.appendChild(v);
+  if(onx){var x=document.createElement("button");x.className="x";x.textContent="×";
+    x.setAttribute("aria-label","Remove "+name);x.onclick=onx;b.appendChild(x)}
+  l.appendChild(a); l.appendChild(b); return l;
+}
+function fill(el,items,empty){el.innerHTML="";for(var i=0;i<items.length;i++)el.appendChild(items[i]);
+  if(empty)empty.style.display=items.length?"none":"block"}
+
+function drawChart(){
+  var box=$("chart"); box.innerHTML="";
+  var s=S.snaps.slice(-12);
+  if(s.length<2){ $("chartNote").textContent="Save a snapshot each month and the line appears here."; return }
+  var W=680,H=190,pad=26;
+  var vals=s.map(function(x){return x.net});
+  var lo=Math.min.apply(null,vals), hi=Math.max.apply(null,vals);
+  if(hi===lo){hi=lo+1}
+  var svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("viewBox","0 0 "+W+" "+H);
+  svg.setAttribute("style","width:100%;height:auto;display:block");
+  svg.setAttribute("role","img");
+  svg.setAttribute("aria-label","Net worth over the last "+s.length+" snapshots");
+  function X(i){return pad+i*(W-pad*2)/(s.length-1)}
+  function Y(v){return H-pad-((v-lo)/(hi-lo))*(H-pad*2)}
+  if(lo<0&&hi>0){
+    var z=document.createElementNS(svg.namespaceURI,"line");
+    z.setAttribute("x1",pad);z.setAttribute("x2",W-pad);
+    z.setAttribute("y1",Y(0));z.setAttribute("y2",Y(0));
+    z.setAttribute("stroke","#E8E1D7");z.setAttribute("stroke-dasharray","4 4");svg.appendChild(z);
+  }
+  var d="",da="";
+  for(var i=0;i<s.length;i++){ d+=(i?" L":"M")+X(i)+" "+Y(s[i].net) }
+  da="M"+X(0)+" "+(H-pad)+" L"+d.slice(1)+" L"+X(s.length-1)+" "+(H-pad)+" Z";
+  var area=document.createElementNS(svg.namespaceURI,"path");
+  area.setAttribute("d",da); area.setAttribute("fill","#EDF1E8"); svg.appendChild(area);
+  var line=document.createElementNS(svg.namespaceURI,"path");
+  line.setAttribute("d",d); line.setAttribute("fill","none");
+  line.setAttribute("stroke","#7C8B6F"); line.setAttribute("stroke-width","2.5");
+  line.setAttribute("stroke-linejoin","round"); svg.appendChild(line);
+  for(var j=0;j<s.length;j++){
+    var c2=document.createElementNS(svg.namespaceURI,"circle");
+    c2.setAttribute("cx",X(j)); c2.setAttribute("cy",Y(s[j].net));
+    c2.setAttribute("r",j===s.length-1?4.5:3);
+    c2.setAttribute("fill",j===s.length-1?"#57654C":"#7C8B6F"); svg.appendChild(c2);
+  }
+  box.appendChild(svg);
+  $("chartNote").textContent=s[0].when+" to "+s[s.length-1].when+", from "+money(s[0].net)+" to "+money(s[s.length-1].net)+".";
+}
+
+function mixRows(box,empty,items,total){
+  box.innerHTML="";
+  var by={};
+  items.forEach(function(x){ by[x.cat]=(by[x.cat]||0)+x.amt });
+  var keys=Object.keys(by).sort(function(a,b){return by[b]-by[a]});
+  keys.forEach(function(k){
+    var pct=total>0?by[k]/total*100:0;
+    var w=document.createElement("div"); w.style.marginBottom="12px";
+    var head=document.createElement("div"); head.className="catrow";
+    var t1=document.createElement("span"); t1.textContent=k;
+    var t2=document.createElement("span"); t2.className="amt";
+    t2.textContent=money(by[k])+"  "+Math.round(pct)+"%";
+    head.appendChild(t1); head.appendChild(t2);
+    var bar=document.createElement("div"); bar.className="bar";
+    var sp=document.createElement("span"); sp.style.width=pct+"%"; bar.appendChild(sp);
+    w.appendChild(head); w.appendChild(bar); box.appendChild(w);
+  });
+  empty.style.display=keys.length?"none":"block";
+}
+
+var MILES=[0,1000,5000,10000,25000,50000,100000,250000,500000,1000000];
+function render(){
+  var t=totals();
+  $("cur").value=S.cur; $("goalV").value=S.goal||"";
+  $("nwV").textContent=money(t.net);
+  $("mAssets").textContent=money(t.A);
+  $("mDebts").textContent=money(t.D);
+  $("mChange").textContent=(t.change>0?"+":"")+money(t.change);
+  $("mChange").className="v "+(t.change>0?"in":(t.change<0?"out":""));
+  var box=$("nwBox");
+  box.className="safe"+(t.net<0?" over":(t.net===0&&t.A===0?"":""));
+  if(t.A===0&&t.D===0){
+    $("nwMeta").textContent="Nothing added yet."; $("nwTag").textContent="Getting started";
+  }else if(t.net<0){
+    $("nwMeta").textContent="You owe "+money(t.D-t.A)+" more than you own. This is where most people start.";
+    $("nwTag").textContent="Climbing out";
+  }else{
+    $("nwMeta").textContent="You own "+money(t.A)+" and owe "+money(t.D)+".";
+    $("nwTag").textContent=t.change>0?"Up since the last snapshot":"Positive";
+  }
+  $("nowSub").textContent=S.snaps.length
+    ? S.snaps.length+(S.snaps.length===1?" snapshot saved":" snapshots saved")+", last one "+S.snaps[S.snaps.length-1].when
+    : "Add what you own and what you owe to see your number.";
+
+  var items=[];
+  S.assets.forEach(function(x,i){items.push(li(x.name,money(x.amt),function(){S.assets.splice(i,1);save();render()},x.cat))});
+  fill($("asList"),items,$("asEmpty"));
+  items=[];
+  S.debts.forEach(function(x,i){items.push(li(x.name,money(x.amt),function(){S.debts.splice(i,1);save();render()},x.cat))});
+  fill($("dbList"),items,$("dbEmpty"));
+
+  items=[];
+  S.snaps.slice().reverse().forEach(function(sn,i){
+    var idx=S.snaps.length-1-i;
+    var prev=idx>0?S.snaps[idx-1].net:null;
+    var sub=prev===null?"first":((sn.net-prev>0?"+":"")+money(sn.net-prev));
+    items.push(li(sn.when,money(sn.net),function(){S.snaps.splice(idx,1);save();render()},sub));
+  });
+  fill($("hsList"),items,$("hsEmpty"));
+  $("mAvg").textContent=(t.avg>0?"+":"")+money(t.avg);
+  $("mSince").textContent=(t.since>0?"+":"")+money(t.since);
+
+  mixRows($("mixAssets"),$("mixAEmpty"),S.assets,t.A);
+  mixRows($("mixDebts"),$("mixDEmpty"),S.debts,t.D);
+
+  var m=monthsToGoal();
+  $("goalNote").textContent = !S.goal ? "Add a target and at least two snapshots to see an estimate."
+    : (t.net>=S.goal ? "You passed your target of "+money(S.goal)+"."
+    : (m===null ? "Your last snapshots did not go up, so there is no pace to project from yet."
+       : m+(m===1?" month":" months")+" to "+money(S.goal)+" at "+money(pace())+" a month."));
+  var gp=S.goal>0?Math.max(0,Math.min(100,t.net/S.goal*100)):0;
+  $("goalBar").style.width=gp+"%";
+  $("goalNow").textContent=money(t.net); $("goalTarget").textContent=money(S.goal);
+
+  items=[];
+  for(var k=0;k<MILES.length;k++){
+    var v=MILES[k], hit=t.net>=v;
+    items.push(li(money(v),hit?"reached":"", null, hit?"":"not yet"));
+  }
+  fill($("msList"),items,null);
+
+  drawChart();
+}
+
+function go(id){
+  var secs=document.querySelectorAll("main section");
+  for(var i=0;i<secs.length;i++) secs[i].className=(secs[i].id===id)?"on":"";
+  var bs=document.querySelectorAll("nav button[data-go]");
+  for(var j=0;j<bs.length;j++) bs[j].className=(bs[j].getAttribute("data-go")===id)?"on":"";
+  window.scrollTo(0,0);
+}
+document.addEventListener("click",function(e){
+  var el=e.target.closest?e.target.closest("[data-go]"):null;
+  if(el) go(el.getAttribute("data-go"));
+});
+
+function snapshot(){
+  var t=totals(), when=iso(new Date());
+  if(S.snaps.length && S.snaps[S.snaps.length-1].when===when){
+    S.snaps[S.snaps.length-1].net=t.net;
+  }else{
+    S.snaps.push({when:when,net:t.net});
+    if(S.snaps.length>60) S.snaps.shift();
+  }
+  save(); render();
+}
+function wire(){
+  $("asAdd").onclick=function(){
+    var n=$("asName").value.trim(), a=pos($("asAmt").value);
+    if(!n||!a) return;
+    S.assets.push({name:n.slice(0,40),amt:a,cat:$("asCat").value});
+    $("asName").value="";$("asAmt").value="";save();render();
+  };
+  $("dbAdd").onclick=function(){
+    var n=$("dbName").value.trim(), a=pos($("dbAmt").value);
+    if(!n||!a) return;
+    S.debts.push({name:n.slice(0,40),amt:a,cat:$("dbCat").value});
+    $("dbName").value="";$("dbAmt").value="";save();render();
+  };
+  $("snapBtn").onclick=snapshot; $("snapBtn2").onclick=snapshot;
+  $("goalV").addEventListener("input",function(){S.goal=num(this.value);save();render()});
+  $("cur").addEventListener("input",function(){S.cur=this.value.slice(0,3)||"$";save();render()});
+  $("expBtn").onclick=function(){
+    alert("Backup export is available in the full version.\n\nYour data stays saved in this browser meanwhile.");return;
+    var blob=new Blob([JSON.stringify(S,null,1)],{type:"application/json"});
+    var a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+    a.download="net-worth-backup.json"; a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href)},2000);
+  };
+  $("impBtn").onclick=function(){$("impFile").click()};
+  $("impFile").onchange=function(){
+    var f=this.files&&this.files[0]; if(!f) return;
+    var r=new FileReader();
+    r.onload=function(){
+      try{localStorage.setItem(KEY,String(r.result)); load(); render();
+          $("savedNote").textContent="Backup restored."}
+      catch(e){$("savedNote").textContent="That file could not be read."}
+    };
+    r.readAsText(f); this.value="";
+  };
+  $("resetBtn").onclick=function(){
+    if(!window.confirm("Clear every number in this app? This cannot be undone.")) return;
+    S={assets:[],debts:[],snaps:[],goal:0,cur:"$"}; save(); render();
+  };
+}
+load(); wire(); render();
+window.__nw={S:S,totals:totals,pace:pace,monthsToGoal:monthsToGoal,load:load,save:save,render:render,snapshot:snapshot};
+})();
+</script>

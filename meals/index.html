@@ -1,0 +1,607 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>DEMO - ADHD Meal Planner</title>
+<style>
+  :root{
+    --bg:#FAF6F0; --card:#FFFFFF; --ink:#2E3A34; --ink2:#3A4A3F; --muted:#7C857E; --faint:#A6AFA6;
+    --sage:#7C8B6F; --sage-d:#57654C; --sage-l:#EDF1E8;
+    --terra:#D08B6C; --terra-l:#FBEEE6; --red:#C4553B; --red-l:#F8E7E3;
+    --line:#E8E1D7; --r:16px;
+    --serif:"Iowan Old Style",Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink)}
+  body{font:15.5px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .app{display:grid;grid-template-columns:212px 1fr;min-height:100vh;max-width:1180px;margin:0 auto}
+  /* ---- sidebar ---- */
+  aside{padding:26px 16px;border-right:1px solid var(--line)}
+  .logo{font-family:var(--serif);font-size:20px;letter-spacing:.2px;margin:0 0 3px}
+  .logo small{display:block;font-family:inherit;font-size:10.5px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--faint);margin-top:5px}
+  nav{margin-top:26px;display:flex;flex-direction:column;gap:2px}
+  nav button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+    background:none;border:0;padding:9px 11px;border-radius:10px;font:inherit;
+    color:var(--muted);cursor:pointer}
+  nav button:hover{background:#F1EDE5;color:var(--ink)}
+  nav button.on{background:var(--sage-l);color:var(--sage-d);font-weight:600}
+  nav .ic{width:17px;text-align:center;flex:0 0 17px}
+  .quick{margin-top:20px;width:100%;background:var(--sage);color:#fff;border:0;
+    padding:11px;border-radius:11px;font:inherit;font-weight:600;cursor:pointer}
+  .quick:hover{background:var(--sage-d)}
+  /* ---- main ---- */
+  main{padding:26px 26px 60px}
+  .hi{font-family:var(--serif);font-size:23px;margin:0 0 3px}
+  .hi + p{margin:0 0 18px;color:var(--muted);font-size:14.5px}
+  section{display:none} section.on{display:block}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:14px}
+  .card h3{font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
+    margin:0 0 14px;font-weight:600}
+  .safe{background:var(--sage-l);border:1px solid #DCE4D4;border-radius:var(--r);padding:26px 22px;margin-bottom:14px}
+  .safe .k{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--sage-d);opacity:.85}
+  .safe .v{font-family:var(--serif);font-size:44px;line-height:1.08;margin:8px 0 8px;color:var(--sage-d);
+    overflow-wrap:anywhere}
+  .safe.warn{background:var(--terra-l);border-color:#F0DCCE}
+  .safe.warn .v,.safe.warn .k{color:#A55F3C}
+  .safe.over{background:var(--red-l);border-color:#F1D4CD}
+  .safe.over .v,.safe.over .k{color:var(--red)}
+  .safe .meta{font-size:14px;color:var(--muted)}
+  .status{display:inline-flex;align-items:center;gap:7px;margin-top:13px;background:#fff;
+    border-radius:999px;padding:7px 14px;font-size:13.5px;font-weight:600;color:var(--sage-d)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--sage)}
+  .safe.warn .dot{background:var(--terra)} .safe.warn .status{color:#A55F3C}
+  .safe.over .dot{background:var(--red)} .safe.over .status{color:var(--red)}
+  /* ---- week board ---- */
+  .board{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+  .day{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:14px}
+  .day.now{border-color:var(--sage);background:#FDFDFB}
+  .day h4{margin:0 0 4px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+    display:flex;justify-content:space-between;align-items:center;gap:6px;font-weight:600}
+  .day .sl{font-size:11.5px;color:var(--faint);margin:9px 0 4px;display:block}
+  .day select{padding:8px 8px;font-size:13px}
+  .chip{background:var(--sage-l);color:var(--sage-d);border-radius:999px;padding:2px 8px;
+    font-size:9.5px;font-weight:700;letter-spacing:.09em}
+  .badge{display:inline-block;border-radius:999px;padding:2px 10px;font-size:11.5px;font-weight:600;white-space:nowrap}
+  .e1{background:var(--sage-l);color:var(--sage-d)}
+  .e2{background:var(--terra-l);color:#A55F3C}
+  .e3{background:var(--red-l);color:var(--red)}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+  input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;
+    font-size:15.5px;font-family:inherit;background:#fff;color:var(--ink)}
+  input:focus,select:focus{outline:2px solid var(--sage);outline-offset:1px}
+  .f{margin-bottom:13px}
+  .row{display:flex;gap:8px;align-items:flex-end}.row>*{flex:1}.row .sm{flex:0 0 150px}.row .btn{flex:0 0 auto}
+  .check{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--muted);margin:12px 0 4px;cursor:pointer}
+  .check input{width:auto;flex:0 0 auto}
+  input[type=checkbox]{width:auto;accent-color:var(--sage);cursor:pointer}
+  button.act{background:var(--sage);color:#fff;border:0;border-radius:10px;padding:10px 16px;
+    font:inherit;font-weight:600;cursor:pointer}
+  button.act:hover{background:var(--sage-d)}
+  button.ghost{background:none;border:1px solid var(--line);color:var(--muted);border-radius:10px;
+    padding:9px 14px;font:inherit;cursor:pointer}
+  button.ghost:hover{background:#F2EEE7;color:var(--ink)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+  .seg button{background:none;border:0;padding:9px 18px;font:inherit;color:var(--muted);cursor:pointer}
+  .seg button.on{background:var(--sage-l);color:var(--sage-d);font-weight:600}
+  ul.list{list-style:none;padding:0;margin:12px 0 0}
+  ul.list li{display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:10px 0;border-bottom:1px solid var(--line)}
+  ul.list li:last-child{border-bottom:0}
+  .lft{display:flex;align-items:center;gap:10px;min-width:0}
+  .rgt{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+  .nm{overflow-wrap:anywhere}
+  .got .nm{color:var(--faint);text-decoration:line-through}
+  .sub{color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+  .x{background:none;border:0;color:var(--faint);padding:2px 7px;font-size:17px;
+    border-radius:6px;cursor:pointer;line-height:1}
+  .x:hover{background:var(--red-l);color:var(--red)}
+  .empty{color:var(--faint);font-size:14px;padding:16px 0;text-align:center}
+  .note{background:#F7F4EE;border-radius:11px;padding:13px 15px;font-size:14px;color:var(--muted);margin-top:13px}
+  .btns{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:16px}
+  footer{grid-column:1/-1;border-top:1px solid var(--line);padding:16px 26px;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+    font-size:13px;color:var(--faint)}
+  @media(max-width:820px){
+    .app{grid-template-columns:1fr}
+    aside{border-right:0;border-bottom:1px solid var(--line)}
+    nav{flex-direction:row;flex-wrap:wrap}
+    nav button{padding:8px 10px}
+    .board{grid-template-columns:1fr 1fr}
+    .row{flex-wrap:wrap}.row .sm{flex:1 1 140px}
+    .safe .v{font-size:36px}
+  }
+  @media(max-width:520px){
+    .board{grid-template-columns:1fr}
+    .safe .v{font-size:28px}
+    .hi{font-size:21px}
+    .seg button{padding:9px 14px}
+  }
+</style>
+<div id="demoBar" style="position:sticky;top:0;z-index:9999;background:#2E3A34;color:#fff;
+font:13px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:9px 14px;
+display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap">
+<strong style="letter-spacing:.06em">FREE DEMO</strong>
+<span style="opacity:.85">Every screen works. Your data is saved in this browser only.</span>
+<a href="https://www.etsy.com/listing/4561385928" target="_blank" rel="noopener" style="background:#7C8B6F;color:#fff;text-decoration:none;
+padding:6px 13px;border-radius:8px;font-weight:600;white-space:nowrap">Get the full app &rarr;</a>
+</div>
+<div class="app">
+<aside>
+  <h1 class="logo">Meal Planner<small>tarqu</small></h1>
+  <nav>
+    <button class="on" data-go="today"><span class="ic">◉</span>Today</button>
+    <button data-go="week"><span class="ic">▤</span>This week</button>
+    <button data-go="meals"><span class="ic">◈</span>My meals</button>
+    <button data-go="groceries"><span class="ic">▦</span>Groceries</button>
+    <button data-go="shelf"><span class="ic">◇</span>Low energy shelf</button>
+    <button data-go="review"><span class="ic">△</span>Review</button>
+  </nav>
+  <button class="quick" data-go="week">Plan this week</button>
+  <div class="note" style="font-size:12.5px">Tell it the energy you actually have. It does the deciding.</div>
+</aside>
+
+<main>
+<section id="today" class="on">
+  <h2 class="hi" id="todayHead">Today</h2>
+  <p>No shame, just dinner. One answer, and a way out if it is too much.</p>
+  <div class="seg" role="group" aria-label="Energy today">
+    <button data-en="low">Low</button><button data-en="okay" class="on">Okay</button><button data-en="good">Good</button>
+  </div>
+  <div class="safe" id="ansBox" style="margin-top:14px">
+    <div class="k">Tonight</div>
+    <div class="v" id="ansName">Nothing yet</div>
+    <div class="meta" id="ansMeta">Add a few meals and this screen answers for you.</div>
+    <div class="status"><span class="dot"></span><span id="ansEffort">Ready when you are</span></div>
+  </div>
+  <div class="btns">
+    <button class="act" id="swapBtn">Swap for another</button>
+    <button class="ghost" id="planBtn">Go back to the plan</button>
+    <button class="ghost" id="starterBtn">Add 5 starter meals</button>
+  </div>
+  <div class="card"><h3>If tonight falls apart</h3>
+    <ul class="list" id="tShelf"></ul>
+    <div class="empty" id="tShelfEmpty">Mark a meal as safe and it waits for you here.</div>
+  </div>
+</section>
+
+<section id="week">
+  <h2 class="hi">This week</h2>
+  <p>Fill only the slots you care about. Empty days are allowed.</p>
+  <div class="board" id="board"></div>
+  <div class="card"><h3>Start over</h3>
+    <button class="ghost" id="freshBtn">Start a fresh week</button>
+    <div class="note">This empties every slot and every tick. Your meals stay where they are.</div>
+  </div>
+</section>
+
+<section id="meals">
+  <h2 class="hi">My meals</h2>
+  <p>The food you actually cook. Effort is how much of you it takes.</p>
+  <div class="card"><h3>Add a meal</h3>
+    <div class="row" style="flex-wrap:wrap;gap:9px">
+      <input id="mName" placeholder="Rice bowl with eggs" aria-label="Meal name">
+      <select id="mEff" class="sm" aria-label="Effort level">
+        <option value="1">1 Easy</option>
+        <option value="2" selected>2 Some effort</option>
+        <option value="3">3 Big cook</option>
+      </select>
+      <button class="act btn" id="mAdd">Add</button>
+    </div>
+    <div class="f" style="margin-top:12px">
+      <label for="mIng">Ingredients, separated by commas</label>
+      <input id="mIng" placeholder="rice, eggs, soy sauce">
+    </div>
+    <label class="check" for="mSafe"><input type="checkbox" id="mSafe">Safe meal, this one always works</label>
+  </div>
+  <div class="card"><h3>Your meals</h3>
+    <ul class="list" id="mList"></ul>
+    <div class="empty" id="mEmpty">No meals yet. Add one above or load the five starters.</div>
+    <div class="btns" style="margin:14px 0 0"><button class="ghost" id="starter2">Add 5 starter meals</button></div>
+  </div>
+</section>
+
+<section id="groceries">
+  <h2 class="hi">Groceries</h2>
+  <p>Built from the meals on your week board. Tick things off as you get them.</p>
+  <div class="card"><h3>From your plan</h3>
+    <ul class="list" id="gList"></ul>
+    <div class="empty" id="gEmpty">Put meals on the week board and this list writes itself.</div>
+  </div>
+  <div class="card"><h3>Anything else</h3>
+    <div class="row" style="flex-wrap:wrap;gap:9px">
+      <input id="gName" placeholder="dish soap" aria-label="Extra item">
+      <button class="act btn" id="gAdd">Add</button>
+    </div>
+    <ul class="list" id="xList"></ul>
+    <div class="empty" id="xEmpty">Nothing extra on the list.</div>
+  </div>
+</section>
+
+<section id="shelf">
+  <h2 class="hi">Low energy shelf</h2>
+  <p>Your bad day plan. Easy meals and the safe ones you never regret.</p>
+  <div class="card"><h3>Ready when you have nothing left</h3>
+    <ul class="list" id="sList"></ul>
+    <div class="empty" id="sEmpty">Nothing here yet. Mark a meal as safe or add an easy one.</div>
+  </div>
+</section>
+
+<section id="review">
+  <h2 class="hi">Review</h2>
+  <p>A quiet look at the week. No scores, no streak to lose.</p>
+  <div class="safe" id="rvBox">
+    <div class="k">Dinners you followed</div>
+    <div class="v" id="rvV">0 of 0</div>
+    <div class="meta" id="rvMeta">Tick a day on the week board once you have eaten it.</div>
+  </div>
+  <div class="card"><h3>Your three most used meals</h3>
+    <ul class="list" id="rvList"></ul>
+    <div class="empty" id="rvEmpty">Nothing on the board yet.</div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <span>Everything stays in this browser. No account, no cloud, no subscription.</span>
+  <span id="savedNote">Saved automatically</span>
+</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+var KEY="tarqu.mealplanner.v1";
+var DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+var MONTHS=["January","February","March","April","May","June","July","August",
+            "September","October","November","December"];
+var EFF={1:"Easy",2:"Some effort",3:"Big cook"};
+var CAP={low:1,okay:2,good:3};
+var SLOTS=["lunch","dinner"];
+var S=fresh();
+
+function $(id){return document.getElementById(id)}
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function blankWeek(){var w=[],i;for(i=0;i<7;i++)w.push({lunch:null,dinner:null,done:false});return w}
+function fresh(){return {meals:[],week:blankWeek(),extras:[],got:{},energy:"okay",tonight:null,seq:1}}
+
+// gunun indeksi yerel saatten. toISOString UTC'ye kayar ve gece yarisindan sonra dunu verir
+function todayIdx(){return (new Date().getDay()+6)%7}
+function todayLabel(){var d=new Date();return DAYS[todayIdx()]+" "+d.getDate()+" "+MONTHS[d.getMonth()]}
+
+function effOf(m){var e=m&&+m.effort;return (e===1||e===2||e===3)?e:1}
+function find(meals,id){for(var i=0;i<meals.length;i++) if(meals[i].id===id) return meals[i]; return null}
+function rank(a,b){return (b.safe?1:0)-(a.safe?1:0)||effOf(a)-effOf(b)}
+
+// ---- saf: alisveris listesi, ayni malzeme tek satir ----
+function groceries(meals,week){
+  var map={},order=[],i,j;
+  for(i=0;i<week.length;i++){
+    for(j=0;j<SLOTS.length;j++){
+      var id=week[i][SLOTS[j]]; if(!id) continue;
+      var m=find(meals,id); if(!m||!m.ing) continue;
+      m.ing.forEach(function(raw){
+        var name=String(raw).trim(); if(!name) return;
+        var key=name.toLowerCase();
+        if(!map[key]){map[key]={key:key,name:name,from:[]};order.push(key)}
+        if(map[key].from.indexOf(m.name)<0) map[key].from.push(m.name);
+      });
+    }
+  }
+  return order.map(function(k){return map[k]});
+}
+// ---- saf: en cok tekrar eden yemekler ----
+function topMeals(meals,week,n){
+  var c={},i,j;
+  for(i=0;i<week.length;i++) for(j=0;j<SLOTS.length;j++){
+    var id=week[i][SLOTS[j]]; if(id&&find(meals,id)) c[id]=(c[id]||0)+1;
+  }
+  return Object.keys(c).map(function(id){return {meal:find(meals,id),count:c[id]}})
+    .sort(function(a,b){return b.count-a.count}).slice(0,n);
+}
+// ---- saf: dusuk enerji rafi ----
+function shelfOf(meals){
+  return meals.filter(function(m){return !!m.safe||effOf(m)===1}).sort(rank);
+}
+// ---- saf: bu enerjiyle yapilabilecekler ----
+function eligible(meals,energy){
+  var cap=CAP[energy]||2;
+  return meals.filter(function(m){return effOf(m)<=cap}).sort(rank);
+}
+// ---- saf: bu aksam ne yiyoruz ----
+function pick(st,idx){
+  var cap=CAP[st.energy]||2;
+  var day=st.week[idx]||{};
+  var planned=day.dinner?find(st.meals,day.dinner):null;
+  if(st.tonight){
+    var t=find(st.meals,st.tonight);
+    if(t) return {meal:t,src:"picked",planned:planned};
+  }
+  if(planned&&effOf(planned)<=cap) return {meal:planned,src:"plan",planned:planned};
+  var list=eligible(st.meals,st.energy);
+  if(list.length) return {meal:list[0],src:planned?"easier":"shelf",planned:planned};
+  return {meal:null,src:planned?"toobig":"none",planned:planned};
+}
+// ---- saf: silinen yemegin plandaki izlerini temizle ----
+function purge(st,id){
+  st.meals=st.meals.filter(function(m){return m.id!==id});
+  for(var i=0;i<st.week.length;i++){
+    if(st.week[i].lunch===id) st.week[i].lunch=null;
+    if(st.week[i].dinner===id){st.week[i].dinner=null;st.week[i].done=false}
+  }
+  if(st.tonight===id) st.tonight=null;
+  return st;
+}
+
+function load(){
+  try{
+    var o=JSON.parse(localStorage.getItem(KEY)||"{}");
+    if(o&&typeof o==="object"){
+      if(Array.isArray(o.meals)) S.meals=o.meals;
+      if(Array.isArray(o.week)&&o.week.length===7) S.week=o.week;
+      if(Array.isArray(o.extras)) S.extras=o.extras;
+      if(o.got&&typeof o.got==="object") S.got=o.got;
+      if(CAP[o.energy]) S.energy=o.energy;
+      if(typeof o.tonight==="string") S.tonight=o.tonight;
+      if(o.seq>0) S.seq=o.seq;
+    }
+  }catch(e){}
+  // sarkan referans birakma
+  for(var i=0;i<S.week.length;i++){
+    var d=S.week[i];
+    if(!d||typeof d!=="object"){S.week[i]={lunch:null,dinner:null,done:false};continue}
+    if(d.lunch&&!find(S.meals,d.lunch)) d.lunch=null;
+    if(d.dinner&&!find(S.meals,d.dinner)){d.dinner=null;d.done=false}
+  }
+  if(S.tonight&&!find(S.meals,S.tonight)) S.tonight=null;
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(S));$("savedNote").textContent="Saved automatically"}
+  catch(e){$("savedNote").textContent="Could not save, this browser is blocking storage"}
+}
+function fillList(ul,items,empty){
+  ul.innerHTML="";
+  for(var i=0;i<items.length;i++) ul.appendChild(items[i]);
+  if(empty) empty.style.display=items.length?"none":"block";
+}
+function badge(m){var e=effOf(m);return el("span","badge e"+e,EFF[e])}
+function line(nameNode,rightNode,cls){
+  var li=el("li",cls||null);
+  li.appendChild(nameNode); li.appendChild(rightNode); return li;
+}
+
+function renderToday(){
+  $("todayHead").textContent=todayLabel();
+  var bs=document.querySelectorAll(".seg button[data-en]");
+  for(var i=0;i<bs.length;i++) bs[i].className=(bs[i].getAttribute("data-en")===S.energy)?"on":"";
+  var r=pick(S,todayIdx());
+  var box=$("ansBox");
+  if(r.meal){
+    var e=effOf(r.meal);
+    $("ansName").textContent=r.meal.name;
+    box.className="safe"+(e===2?" warn":e===3?" over":"");
+    $("ansEffort").textContent=EFF[e]+(r.meal.safe?" and safe":"");
+  }else{
+    $("ansName").textContent="Nothing yet";
+    box.className="safe";
+    $("ansEffort").textContent="Ready when you are";
+  }
+  var meta="Add a few meals and this screen answers for you.";
+  if(r.src==="plan") meta="This is what your week board says for tonight.";
+  else if(r.src==="picked") meta="You chose this one yourself.";
+  else if(r.src==="easier") meta="Your board says "+r.planned.name+". That is a lot for today so here is an easier one.";
+  else if(r.src==="shelf") meta="Nothing is planned for tonight so here is something easy.";
+  else if(r.src==="toobig") meta="Only "+r.planned.name+" is planned and it is a big cook. Add one easy meal for days like this.";
+  $("ansMeta").textContent=meta;
+  $("swapBtn").style.display=eligible(S.meals,S.energy).length>1?"inline-block":"none";
+  $("planBtn").style.display=S.tonight?"inline-block":"none";
+  $("starterBtn").style.display=S.meals.length?"none":"inline-block";
+  $("starter2").style.display=S.meals.length?"none":"inline-block";
+
+  var items=shelfOf(S.meals).slice(0,5).map(function(m){
+    var l=el("span","lft"); l.appendChild(el("span","nm",m.name));
+    if(m.safe) l.appendChild(el("span","chip","SAFE"));
+    var rt=el("span","rgt"); rt.appendChild(badge(m));
+    return line(l,rt);
+  });
+  fillList($("tShelf"),items,$("tShelfEmpty"));
+}
+
+function slotSelect(i,slot){
+  var s=document.createElement("select");
+  s.setAttribute("aria-label",DAYS[i]+" "+slot);
+  var o0=el("option",null,"Nothing planned"); o0.value=""; s.appendChild(o0);
+  S.meals.forEach(function(m){
+    var o=el("option",null,m.name); o.value=m.id; s.appendChild(o);
+  });
+  s.value=S.week[i][slot]||"";
+  s.onchange=function(){
+    S.week[i][slot]=this.value||null;
+    if(slot==="dinner"&&!this.value) S.week[i].done=false;
+    save(); render();
+  };
+  return s;
+}
+function renderWeek(){
+  var b=$("board"); b.innerHTML="";
+  var now=todayIdx();
+  for(var i=0;i<7;i++){
+    (function(i){
+      var d=S.week[i];
+      var card=el("div","day"+(i===now?" now":""));
+      var h=el("h4",null,DAYS[i]);
+      if(i===now) h.appendChild(el("span","chip","TODAY"));
+      card.appendChild(h);
+      card.appendChild(el("span","sl","Lunch"));
+      card.appendChild(slotSelect(i,"lunch"));
+      card.appendChild(el("span","sl","Dinner"));
+      card.appendChild(slotSelect(i,"dinner"));
+      var dm=d.dinner?find(S.meals,d.dinner):null;
+      var foot=el("div",null); foot.style.marginTop="10px";
+      if(dm) foot.appendChild(badge(dm));
+      card.appendChild(foot);
+      var lab=el("label","check");
+      var cb=document.createElement("input"); cb.type="checkbox";
+      cb.checked=!!d.done; cb.disabled=!d.dinner;
+      cb.setAttribute("aria-label","Ate the plan on "+DAYS[i]);
+      cb.onchange=function(){S.week[i].done=this.checked;save();render()};
+      lab.appendChild(cb); lab.appendChild(document.createTextNode("Ate the plan"));
+      card.appendChild(lab);
+      b.appendChild(card);
+    })(i);
+  }
+}
+
+function renderMeals(){
+  var items=S.meals.map(function(m){
+    var l=el("span","lft");
+    var wrap=el("span",null);
+    wrap.appendChild(el("span","nm",m.name));
+    var ing=(m.ing&&m.ing.length)?m.ing.join(", "):"No ingredients listed";
+    var sb=el("span","sub"); sb.style.display="block"; sb.textContent=ing;
+    wrap.appendChild(sb);
+    l.appendChild(wrap);
+    if(m.safe) l.appendChild(el("span","chip","SAFE"));
+    var rt=el("span","rgt"); rt.appendChild(badge(m));
+    var x=el("button","x","×"); x.setAttribute("aria-label","Remove "+m.name);
+    x.onclick=function(){purge(S,m.id);save();render()};
+    rt.appendChild(x);
+    return line(l,rt);
+  });
+  fillList($("mList"),items,$("mEmpty"));
+}
+
+function renderGroceries(){
+  var rows=groceries(S.meals,S.week);
+  var items=rows.map(function(g){
+    var l=el("span","lft");
+    var cb=document.createElement("input"); cb.type="checkbox"; cb.style.width="auto";
+    cb.checked=!!S.got[g.key]; cb.setAttribute("aria-label","Got "+g.name);
+    cb.onchange=function(){if(this.checked)S.got[g.key]=true;else delete S.got[g.key];save();render()};
+    var wrap=el("span",null);
+    wrap.appendChild(el("span","nm",g.name));
+    var sb=el("span","sub"); sb.style.display="block"; sb.textContent="from "+g.from.join(", ");
+    wrap.appendChild(sb);
+    l.appendChild(cb); l.appendChild(wrap);
+    return line(l,el("span","rgt"),S.got[g.key]?"got":null);
+  });
+  fillList($("gList"),items,$("gEmpty"));
+
+  items=S.extras.map(function(x,i){
+    var l=el("span","lft");
+    var cb=document.createElement("input"); cb.type="checkbox"; cb.style.width="auto";
+    cb.checked=!!x.got; cb.setAttribute("aria-label","Got "+x.name);
+    cb.onchange=function(){S.extras[i].got=this.checked;save();render()};
+    l.appendChild(cb); l.appendChild(el("span","nm",x.name));
+    var rt=el("span","rgt");
+    var del=el("button","x","×"); del.setAttribute("aria-label","Remove "+x.name);
+    del.onclick=function(){S.extras.splice(i,1);save();render()};
+    rt.appendChild(del);
+    return line(l,rt,x.got?"got":null);
+  });
+  fillList($("xList"),items,$("xEmpty"));
+}
+
+function renderShelf(){
+  var items=shelfOf(S.meals).map(function(m){
+    var l=el("span","lft");
+    var wrap=el("span",null);
+    wrap.appendChild(el("span","nm",m.name));
+    var sb=el("span","sub"); sb.style.display="block";
+    sb.textContent=(m.ing&&m.ing.length)?m.ing.join(", "):"No ingredients listed";
+    wrap.appendChild(sb);
+    l.appendChild(wrap);
+    if(m.safe) l.appendChild(el("span","chip","SAFE"));
+    var rt=el("span","rgt"); rt.appendChild(badge(m));
+    return line(l,rt);
+  });
+  fillList($("sList"),items,$("sEmpty"));
+}
+
+function renderReview(){
+  var planned=0,done=0;
+  for(var i=0;i<7;i++){ if(S.week[i].dinner){planned++; if(S.week[i].done) done++} }
+  $("rvV").textContent=done+" of "+planned;
+  $("rvMeta").textContent = planned===0
+    ? "Tick a day on the week board once you have eaten it."
+    : (done===planned ? "Every planned dinner happened. That is a full week."
+                      : "That is "+Math.round(done/planned*100)+" percent of what you planned. Good enough counts.");
+  var items=topMeals(S.meals,S.week,3).map(function(t){
+    var l=el("span","lft"); l.appendChild(el("span","nm",t.meal.name));
+    if(t.meal.safe) l.appendChild(el("span","chip","SAFE"));
+    var rt=el("span","rgt");
+    rt.appendChild(el("span","sub",t.count===1?"once this week":t.count+" times this week"));
+    rt.appendChild(badge(t.meal));
+    return line(l,rt);
+  });
+  fillList($("rvList"),items,$("rvEmpty"));
+}
+
+function render(){
+  renderToday(); renderWeek(); renderMeals();
+  renderGroceries(); renderShelf(); renderReview();
+}
+
+function go(id){
+  var secs=document.querySelectorAll("main section");
+  for(var i=0;i<secs.length;i++) secs[i].className=(secs[i].id===id)?"on":"";
+  var bs=document.querySelectorAll("nav button[data-go]");
+  for(var j=0;j<bs.length;j++) bs[j].className=(bs[j].getAttribute("data-go")===id)?"on":"";
+  window.scrollTo(0,0);
+}
+document.addEventListener("click",function(e){
+  var el2=e.target.closest?e.target.closest("[data-go]"):null;
+  if(el2) go(el2.getAttribute("data-go"));
+});
+
+function addMeal(name,eff,ing,safe){
+  var n=String(name||"").trim(); if(!n) return null;
+  var m={id:"m"+(S.seq++),name:n.slice(0,60),effort:eff,safe:!!safe,
+    ing:String(ing||"").split(",").map(function(s){return s.trim().slice(0,40)}).filter(Boolean)};
+  S.meals.push(m); return m;
+}
+function starters(){
+  addMeal("Pasta with tomato sauce",1,"pasta, tomato sauce, garlic, olive oil",true);
+  addMeal("Rice bowl with eggs",1,"rice, eggs, soy sauce, spring onion",true);
+  addMeal("Sheet pan chicken and veg",2,"chicken thighs, potatoes, carrots, olive oil",false);
+  addMeal("Bean chilli",2,"beans, onion, tomato, chilli powder, rice",false);
+  addMeal("Sunday roast",3,"chicken, potatoes, carrots, gravy",false);
+  save(); render();
+}
+
+function wire(){
+  var bs=document.querySelectorAll(".seg button[data-en]");
+  for(var i=0;i<bs.length;i++) bs[i].onclick=function(){
+    S.energy=this.getAttribute("data-en"); S.tonight=null; save(); render();
+  };
+  $("swapBtn").onclick=function(){
+    var list=eligible(S.meals,S.energy); if(!list.length) return;
+    var cur=pick(S,todayIdx()).meal;
+    var i=cur?list.indexOf(cur):-1;
+    S.tonight=list[(i+1)%list.length].id; save(); render();
+  };
+  $("planBtn").onclick=function(){S.tonight=null;save();render()};
+  $("starterBtn").onclick=starters;
+  $("starter2").onclick=starters;
+  $("mAdd").onclick=function(){
+    if(!addMeal($("mName").value,+$("mEff").value,$("mIng").value,$("mSafe").checked)) return;
+    $("mName").value=""; $("mIng").value=""; $("mSafe").checked=false;
+    save(); render();
+  };
+  $("gAdd").onclick=function(){
+    var v=$("gName").value.trim(); if(!v) return;
+    S.extras.push({name:v.slice(0,40),got:false}); $("gName").value=""; save(); render();
+  };
+  $("freshBtn").onclick=function(){
+    if(!window.confirm("Empty every slot on the week board?")) return;
+    S.week=blankWeek(); S.tonight=null; S.got={}; save(); render();
+  };
+  ["mName","mIng","gName"].forEach(function(id){
+    $(id).addEventListener("keydown",function(e){
+      if(e.key==="Enter") $(id==="gName"?"gAdd":"mAdd").click();
+    });
+  });
+}
+
+load(); wire(); render();
+window.__mp={S:S,pick:pick,groceries:groceries,topMeals:topMeals,shelfOf:shelfOf,
+             eligible:eligible,purge:purge,render:render,save:save,load:load};
+})();
+</script>

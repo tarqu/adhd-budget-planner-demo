@@ -1,0 +1,589 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>DEMO - Couples Budget App</title>
+<style>
+  :root{
+    --bg:#FAF6F0; --card:#FFFFFF; --ink:#2E3A34; --muted:#7C857E; --faint:#A6AFA6;
+    --sage:#7C8B6F; --sage-d:#57654C; --sage-l:#EDF1E8;
+    --terra:#D08B6C; --terra-l:#FBEEE6; --red:#C4553B; --red-l:#F8E7E3;
+    --line:#E8E1D7; --r:16px;
+    --serif:"Iowan Old Style",Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink)}
+  body{font:15.5px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .app{display:grid;grid-template-columns:212px 1fr;min-height:100vh;max-width:1180px;margin:0 auto}
+  /* ---- sidebar ---- */
+  aside{padding:26px 16px;border-right:1px solid var(--line)}
+  .logo{font-family:var(--serif);font-size:20px;letter-spacing:.2px;margin:0 0 3px}
+  .logo small{display:block;font-family:inherit;font-size:10.5px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--faint);margin-top:5px}
+  nav{margin-top:26px;display:flex;flex-direction:column;gap:2px}
+  nav button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+    background:none;border:0;padding:9px 11px;border-radius:10px;font:inherit;
+    color:var(--muted);cursor:pointer}
+  nav button:hover{background:#F1EDE5;color:var(--ink)}
+  nav button.on{background:var(--sage-l);color:var(--sage-d);font-weight:600}
+  nav .ic{width:17px;text-align:center;flex:0 0 17px}
+  .quick{margin-top:20px;width:100%;background:var(--sage);color:#fff;border:0;
+    padding:11px;border-radius:11px;font:inherit;font-weight:600;cursor:pointer}
+  .quick:hover{background:var(--sage-d)}
+  /* ---- main ---- */
+  main{padding:26px 26px 60px}
+  .hi{font-family:var(--serif);font-size:23px;margin:0 0 3px}
+  .hi + p{margin:0 0 20px;color:var(--muted);font-size:14.5px}
+  section{display:none} section.on{display:block}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:14px}
+  .card h3{font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
+    margin:0 0 14px;font-weight:600}
+  .safe{background:var(--sage-l);border:1px solid #DCE4D4;border-radius:var(--r);padding:26px 22px;margin-bottom:14px}
+  .safe .k{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--sage-d);opacity:.85}
+  .safe .v{font-family:var(--serif);font-size:57px;line-height:1;margin:7px 0 6px;color:var(--sage-d)}
+  .safe.warn{background:var(--terra-l);border-color:#F0DCCE}
+  .safe.warn .v,.safe.warn .k{color:#A55F3C}
+  .safe.over{background:var(--red-l);border-color:#F1D4CD}
+  .safe.over .v,.safe.over .k{color:var(--red)}
+  .safe .meta{font-size:14px;color:var(--muted)}
+  .status{display:inline-flex;align-items:center;gap:7px;margin-top:13px;background:#fff;
+    border-radius:999px;padding:7px 14px;font-size:13.5px;font-weight:600;color:var(--sage-d)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--sage)}
+  .safe.warn .dot{background:var(--terra)} .safe.warn .status{color:#A55F3C}
+  .safe.over .dot{background:var(--red)} .safe.over .status{color:var(--red)}
+  .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+  .mini{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px}
+  .mini .k{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .mini .v{font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:3px}
+  .in{color:var(--sage-d)} .out{color:var(--red)}
+  /* hub grid */
+  .hub{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .hub .tile{background:var(--card);border:1px solid var(--line);border-radius:13px;
+    padding:16px;cursor:pointer;transition:border-color .15s}
+  .hub .tile:hover{border-color:var(--sage)}
+  .hub .k{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .hub .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:4px}
+  .hub .s{font-size:12.5px;color:var(--faint);margin-top:3px}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+  input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;
+    font-size:15.5px;font-family:inherit;background:#fff;color:var(--ink)}
+  input:focus,select:focus{outline:2px solid var(--sage);outline-offset:1px}
+  .f{margin-bottom:13px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row{display:flex;gap:8px}.row>*{flex:1}.row .sm{flex:0 0 96px}.row .btn{flex:0 0 auto}
+  button.act{background:var(--sage);color:#fff;border:0;border-radius:10px;padding:10px 16px;
+    font:inherit;font-weight:600;cursor:pointer}
+  button.act:hover{background:var(--sage-d)}
+  button.ghost{background:none;border:1px solid var(--line);color:var(--muted);border-radius:10px;
+    padding:9px 14px;font:inherit;cursor:pointer}
+  button.ghost:hover{background:#F2EEE7;color:var(--ink)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .seg button{background:none;border:0;padding:8px 14px;font:inherit;color:var(--muted);cursor:pointer}
+  .seg button.on{background:var(--sage-l);color:var(--sage-d);font-weight:600}
+  ul.list{list-style:none;padding:0;margin:12px 0 0}
+  ul.list li{display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:10px 0;border-bottom:1px solid var(--line)}
+  ul.list li:last-child{border-bottom:0}
+  .amt{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+  .x{background:none;border:0;color:var(--faint);padding:2px 7px;font-size:17px;
+    border-radius:6px;cursor:pointer;line-height:1}
+  .x:hover{background:var(--red-l);color:var(--red)}
+  .sub{color:var(--muted);font-size:13px}
+  .bar{height:8px;background:#EFEAE1;border-radius:999px;overflow:hidden;margin:8px 0 3px}
+  .bar span{display:block;height:100%;background:var(--sage);border-radius:999px;transition:width .35s}
+  .bar span.warn{background:var(--terra)} .bar span.over{background:var(--red)}
+  .catrow{display:flex;justify-content:space-between;font-size:14px}
+  .empty{color:var(--faint);font-size:14px;padding:16px 0;text-align:center}
+  .focus{display:inline-block;background:var(--sage-l);color:var(--sage-d);border-radius:999px;
+    padding:3px 10px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    margin-left:8px}
+  /* impulse pause */
+  .pause{text-align:center;padding:30px 20px}
+  .clock{font-family:var(--serif);font-size:62px;line-height:1;color:var(--sage-d);
+    font-variant-numeric:tabular-nums}
+  .pause p{color:var(--muted);max-width:400px;margin:12px auto 0}
+  .pausebtns{display:flex;gap:9px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+  .note{background:#F7F4EE;border-radius:11px;padding:13px 15px;font-size:14px;color:var(--muted);margin-top:13px}
+  .big{font-family:var(--serif);font-size:38px;color:var(--sage-d);line-height:1.1}
+  footer{grid-column:1/-1;border-top:1px solid var(--line);padding:16px 26px;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+    font-size:13px;color:var(--faint)}
+  @media(max-width:820px){
+    .app{grid-template-columns:1fr}
+    aside{border-right:0;border-bottom:1px solid var(--line)}
+    nav{flex-direction:row;flex-wrap:wrap}
+    nav button{padding:8px 10px}
+    .trio,.hub{grid-template-columns:1fr}
+    .two{grid-template-columns:1fr}
+    .safe .v{font-size:46px}
+  }
+  @media(max-width:520px){
+    .safe .v.big{font-size:30px;line-height:1.12}
+    .big{overflow-wrap:anywhere}
+    .hi{font-size:21px}
+  }
+</style>
+<div id="demoBar" style="position:sticky;top:0;z-index:9999;background:#2E3A34;color:#fff;
+font:13px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:9px 14px;
+display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap">
+<strong style="letter-spacing:.06em">FREE DEMO</strong>
+<span style="opacity:.85">Every screen works. Your data is saved in this browser only.</span>
+<a href="https://www.etsy.com/listing/4559650044" target="_blank" rel="noopener" style="background:#7C8B6F;color:#fff;text-decoration:none;
+padding:6px 13px;border-radius:8px;font-weight:600;white-space:nowrap">Get the full app &rarr;</a>
+</div>
+<div class="app">
+<aside>
+  <h1 class="logo">Couples Budget<small>Shared money, fair split</small></h1>
+  <nav>
+    <button class="on" data-go="over"><span class="ic">◆</span>Overview</button>
+    <button data-go="setup"><span class="ic">◔</span>Setup</button>
+    <button data-go="bills"><span class="ic">▤</span>Shared bills</button>
+    <button data-go="spend"><span class="ic">◉</span>Who paid</button>
+    <button data-go="personal"><span class="ic">◈</span>Personal</button>
+    <button data-go="goals"><span class="ic">△</span>Goals</button>
+    <button data-go="settle"><span class="ic">▦</span>Settle up</button>
+  </nav>
+  <button class="quick" data-go="spend">+ Log a payment</button>
+  <div class="note" style="margin-top:16px;font-size:12.5px">Everything stays in this browser. No account, no cloud, no subscription.</div>
+</aside>
+
+<main>
+<section id="over" class="on">
+  <h2 class="hi" id="greet">Overview</h2>
+  <p id="overSub">Set up both incomes to see your fair split.</p>
+  <div class="safe" id="settleBox">
+    <div class="k" style="font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)">Right now</div>
+    <div class="v big" id="settleV">All square</div>
+    <div class="meta" id="settleMeta">Nothing to settle yet.</div>
+    <div class="status"><span class="dot"></span><span id="settleTag">Balanced</span></div>
+  </div>
+  <div class="trio">
+    <div class="mini"><div class="k">Shared this month</div><div class="v" id="mSharedTotal">0</div></div>
+    <div class="mini"><div class="k" id="mAName">Partner A share</div><div class="v in" id="mAShare">0</div></div>
+    <div class="mini"><div class="k" id="mBName">Partner B share</div><div class="v in" id="mBShare">0</div></div>
+  </div>
+  <div class="hub">
+    <div class="tile" data-go="bills"><div class="k">Shared bills</div><div class="v" id="tBills">0</div><div class="s" id="tBillsS">per month</div></div>
+    <div class="tile" data-go="spend"><div class="k">Payments logged</div><div class="v" id="tPays">0</div><div class="s">this month</div></div>
+    <div class="tile" data-go="personal"><div class="k">Personal spend</div><div class="v" id="tPers">0</div><div class="s">both partners</div></div>
+    <div class="tile" data-go="goals"><div class="k">Goals saved</div><div class="v" id="tGoals">0</div><div class="s" id="tGoalsS">of 0 target</div></div>
+    <div class="tile" data-go="setup"><div class="k">Split method</div><div class="v" id="tSplit">50 / 50</div><div class="s" id="tSplitS">change in Setup</div></div>
+    <div class="tile" data-go="settle"><div class="k">Left to spend</div><div class="v" id="tLeft">0</div><div class="s">combined income minus shared</div></div>
+  </div>
+</section>
+
+<section id="setup">
+  <h2 class="hi">Setup</h2>
+  <p>Two names, two incomes, one rule for splitting. That is the whole setup.</p>
+  <div class="card"><h3>Partners</h3>
+    <div class="two">
+      <div><div class="f"><label for="aName">First partner</label><input id="aName" placeholder="Alex"></div>
+        <div class="f"><label for="aInc">Monthly income after tax</label><input id="aInc" type="number" min="0" step="1" placeholder="3200"></div></div>
+      <div><div class="f"><label for="bName">Second partner</label><input id="bName" placeholder="Sam"></div>
+        <div class="f"><label for="bInc">Monthly income after tax</label><input id="bInc" type="number" min="0" step="1" placeholder="2400"></div></div>
+    </div>
+    <div class="f"><label for="cur">Currency symbol</label><input id="cur" maxlength="3" placeholder="$" style="max-width:110px"></div>
+  </div>
+  <div class="card"><h3>How to split shared costs</h3>
+    <div class="seg" id="splitSeg">
+      <button data-split="even" class="on">Split evenly</button>
+      <button data-split="income">By income share</button>
+    </div>
+    <div class="note" id="splitNote">Even split means both pay half of every shared cost.</div>
+  </div>
+  <div class="card"><h3>Your data</h3>
+    <p class="sub" style="margin:0 0 12px">This app saves to your own browser only. Nothing is uploaded.</p>
+    <div class="row" style="flex-wrap:wrap;gap:9px">
+      <button class="ghost btn" id="expBtn">Export a backup file</button>
+      <button class="ghost btn" id="impBtn">Restore from backup</button>
+      <button class="ghost btn" id="resetBtn">Clear everything</button>
+    </div>
+    <input id="impFile" type="file" accept="application/json" style="display:none">
+    <div class="note" id="savedNote">Saved automatically.</div>
+  </div>
+</section>
+
+<section id="bills">
+  <h2 class="hi">Shared bills</h2>
+  <p>Recurring costs you both use. The split column follows the rule you picked in Setup.</p>
+  <div class="card"><h3>Add a shared bill</h3>
+    <div class="row" style="flex-wrap:wrap;gap:9px">
+      <input id="bilName" placeholder="Rent" aria-label="Bill name">
+      <input id="bilAmt" class="sm" type="number" min="0" step="0.01" placeholder="1150" aria-label="Amount">
+      <select id="bilWho" class="sm" aria-label="Who pays it"><option value="a">A pays</option><option value="b">B pays</option><option value="split">Split now</option></select>
+      <button class="act btn" id="bilAdd">Add</button>
+    </div>
+    <ul class="list" id="bilList"></ul>
+    <div class="empty" id="bilEmpty">No shared bills yet.</div>
+  </div>
+  <div class="card"><h3>Monthly shared total</h3>
+    <div class="catrow"><span id="shA">Partner A</span><span class="amt" id="shAv">0</span></div>
+    <div class="bar"><span id="shBar" style="width:50%"></span></div>
+    <div class="catrow"><span id="shB">Partner B</span><span class="amt" id="shBv">0</span></div>
+    <div class="note" id="shNote"></div>
+  </div>
+</section>
+
+<section id="spend">
+  <h2 class="hi">Who paid</h2>
+  <p>Log a real payment for a shared cost. This is what decides who owes who.</p>
+  <div class="card"><h3>Log a payment</h3>
+    <div class="row" style="flex-wrap:wrap;gap:9px">
+      <input id="payWhat" placeholder="Groceries" aria-label="What">
+      <input id="payAmt" class="sm" type="number" min="0" step="0.01" placeholder="62" aria-label="Amount">
+      <select id="payWho" class="sm" aria-label="Paid by"><option value="a">A paid</option><option value="b">B paid</option></select>
+      <button class="act btn" id="payAdd">Add</button>
+    </div>
+    <ul class="list" id="payList"></ul>
+    <div class="empty" id="payEmpty">Nothing logged yet.</div>
+  </div>
+</section>
+
+<section id="personal">
+  <h2 class="hi">Personal</h2>
+  <p>Money that is nobody else's business. Kept out of the shared split on purpose.</p>
+  <div class="card"><h3>Add personal spending</h3>
+    <div class="row" style="flex-wrap:wrap;gap:9px">
+      <input id="perWhat" placeholder="Hobby" aria-label="What">
+      <input id="perAmt" class="sm" type="number" min="0" step="0.01" placeholder="35" aria-label="Amount">
+      <select id="perWho" class="sm" aria-label="Whose"><option value="a">A</option><option value="b">B</option></select>
+      <button class="act btn" id="perAdd">Add</button>
+    </div>
+    <ul class="list" id="perList"></ul>
+    <div class="empty" id="perEmpty">No personal spending logged.</div>
+  </div>
+  <div class="two">
+    <div class="mini"><div class="k" id="perAK">Partner A</div><div class="v out" id="perAv">0</div></div>
+    <div class="mini"><div class="k" id="perBK">Partner B</div><div class="v out" id="perBv">0</div></div>
+  </div>
+</section>
+
+<section id="goals">
+  <h2 class="hi">Goals</h2>
+  <p>Things you are saving for together. Each one shows how many months are left at the current pace.</p>
+  <div class="card"><h3>Add a goal</h3>
+    <div class="row" style="flex-wrap:wrap;gap:9px">
+      <input id="goName" placeholder="Holiday" aria-label="Goal name">
+      <input id="goTarget" class="sm" type="number" min="0" step="1" placeholder="2400" aria-label="Target">
+      <input id="goPer" class="sm" type="number" min="0" step="1" placeholder="200" aria-label="Per month">
+      <button class="act btn" id="goAdd">Add</button>
+    </div>
+    <div id="goList"></div>
+    <div class="empty" id="goEmpty">No goals yet.</div>
+  </div>
+</section>
+
+<section id="settle">
+  <h2 class="hi">Settle up</h2>
+  <p>One number, one direction. Pay it and you are even again.</p>
+  <div class="card"><h3>This month</h3>
+    <div class="catrow"><span id="stARow">Partner A paid</span><span class="amt" id="stAPaid">0</span></div>
+    <div class="catrow"><span id="stAOwe">Partner A fair share</span><span class="amt" id="stAShare">0</span></div>
+    <div class="catrow" style="margin-top:10px"><span id="stBRow">Partner B paid</span><span class="amt" id="stBPaid">0</span></div>
+    <div class="catrow"><span id="stBOwe">Partner B fair share</span><span class="amt" id="stBShare">0</span></div>
+    <div class="note" id="stNote" style="margin-top:14px"></div>
+    <div class="row" style="margin-top:14px"><button class="act btn" id="stClear">Mark as settled and start a new month</button></div>
+  </div>
+  <div class="card"><h3>Past months</h3>
+    <ul class="list" id="histList"></ul>
+    <div class="empty" id="histEmpty">No settled months yet.</div>
+  </div>
+</section>
+
+<footer>
+  <span>Couples Budget App &middot; works offline in your browser</span>
+  <span id="foot">No account needed</span>
+</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+var KEY="tarqu.couples.v1";
+var S={aName:"",bName:"",aInc:0,bInc:0,cur:"$",split:"even",
+        bills:[],pays:[],pers:[],goals:[],hist:[]};
+
+function $(id){return document.getElementById(id)}
+function num(v){var n=parseFloat(v);return isFinite(n)&&n>0?n:0}
+function nm(which){var n=(which==="a"?S.aName:S.bName)||"";return n.trim()||(which==="a"?"Partner A":"Partner B")}
+function money(v){
+  var neg=v<0, a=Math.round(Math.abs(v)*100)/100;
+  var s=a%1===0?a.toFixed(0):a.toFixed(2);
+  return (neg?"-":"")+S.cur+s.replace(/\B(?=(\d{3})+(?!\d))/g,",");
+}
+function ratio(){
+  if(S.split==="income"){
+    var t=S.aInc+S.bInc;
+    if(t>0) return S.aInc/t;
+  }
+  return 0.5;
+}
+function sum(arr,f){var t=0;for(var i=0;i<arr.length;i++)t+=f(arr[i]);return t}
+
+function totals(){
+  var r=ratio();
+  var billTotal=sum(S.bills,function(b){return b.amt});
+  var payTotal=sum(S.pays,function(p){return p.amt});
+  var shared=billTotal+payTotal;
+  var splitBills=sum(S.bills,function(b){return b.who==="split"?b.amt:0});
+  var aPaid=sum(S.bills,function(b){return b.who==="a"?b.amt:0})+splitBills*r
+           +sum(S.pays,function(p){return p.who==="a"?p.amt:0});
+  var bPaid=shared-aPaid;
+  var aShare=shared*r, bShare=shared-aShare;
+  var perA=sum(S.pers,function(p){return p.who==="a"?p.amt:0});
+  var perB=sum(S.pers,function(p){return p.who==="b"?p.amt:0});
+  var goalSaved=sum(S.goals,function(g){return g.saved});
+  var goalTarget=sum(S.goals,function(g){return g.target});
+  return {r:r,shared:shared,billTotal:billTotal,aPaid:aPaid,bPaid:bPaid,
+          aShare:aShare,bShare:bShare,balance:aPaid-aShare,
+          perA:perA,perB:perB,goalSaved:goalSaved,goalTarget:goalTarget,
+          left:(S.aInc+S.bInc)-shared-perA-perB};
+}
+
+function load(){
+  try{
+    var o=JSON.parse(localStorage.getItem(KEY)||"{}");
+    if(o&&typeof o==="object"){
+      S.aName=typeof o.aName==="string"?o.aName:"";
+      S.bName=typeof o.bName==="string"?o.bName:"";
+      S.aInc=num(o.aInc); S.bInc=num(o.bInc);
+      S.cur=(typeof o.cur==="string"&&o.cur)?o.cur.slice(0,3):"$";
+      S.split=o.split==="income"?"income":"even";
+      S.bills=Array.isArray(o.bills)?o.bills:[];
+      S.pays=Array.isArray(o.pays)?o.pays:[];
+      S.pers=Array.isArray(o.pers)?o.pers:[];
+      S.goals=Array.isArray(o.goals)?o.goals:[];
+      S.hist=Array.isArray(o.hist)?o.hist:[];
+    }
+  }catch(e){}
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(S));if($("savedNote"))$("savedNote").textContent="Saved automatically."}
+  catch(e){if($("savedNote"))$("savedNote").textContent="Could not save, this browser is blocking storage."}
+}
+
+function li(name,right,onx,sub){
+  var l=document.createElement("li");
+  var a=document.createElement("span");
+  var n=document.createElement("span"); n.textContent=name; a.appendChild(n);
+  if(sub){var sp=document.createElement("span");sp.className="sub";sp.textContent="  "+sub;a.appendChild(sp)}
+  var b=document.createElement("span"); b.style.display="flex"; b.style.alignItems="center"; b.style.gap="4px";
+  var v=document.createElement("span"); v.className="amt"; v.textContent=right; b.appendChild(v);
+  if(onx){var x=document.createElement("button");x.className="x";x.textContent="×";
+    x.setAttribute("aria-label","Remove "+name);x.onclick=onx;b.appendChild(x)}
+  l.appendChild(a); l.appendChild(b); return l;
+}
+function fill(el,items,empty){
+  el.innerHTML="";
+  for(var i=0;i<items.length;i++) el.appendChild(items[i]);
+  if(empty) empty.style.display=items.length?"none":"block";
+}
+
+function render(){
+  var t=totals();
+  $("aName").value=S.aName; $("bName").value=S.bName;
+  $("aInc").value=S.aInc||""; $("bInc").value=S.bInc||""; $("cur").value=S.cur;
+  var segs=$("splitSeg").children;
+  for(var i=0;i<segs.length;i++) segs[i].className=(segs[i].getAttribute("data-split")===S.split)?"on":"";
+  $("splitNote").textContent = S.split==="income"
+    ? (S.aInc+S.bInc>0
+        ? nm("a")+" covers "+Math.round(t.r*100)+"% of shared costs, "+nm("b")+" covers "+Math.round((1-t.r)*100)+"%. This follows your incomes."
+        : "Add both incomes and the percentages will appear here. Until then it splits evenly.")
+    : "Even split means both pay half of every shared cost, whatever they earn.";
+
+  $("overSub").textContent = (S.aInc+S.bInc>0)
+    ? nm("a")+" and "+nm("b")+" · "+money(S.aInc+S.bInc)+" combined income a month"
+    : "Add both incomes in Setup to see your fair split.";
+  $("mAName").textContent=nm("a")+" share"; $("mBName").textContent=nm("b")+" share";
+  $("mSharedTotal").textContent=money(t.shared);
+  $("mAShare").textContent=money(t.aShare); $("mBShare").textContent=money(t.bShare);
+  $("tBills").textContent=money(t.billTotal);
+  $("tBillsS").textContent=S.bills.length+(S.bills.length===1?" bill":" bills");
+  $("tPays").textContent=String(S.pays.length);
+  $("tPers").textContent=money(t.perA+t.perB);
+  $("tGoals").textContent=money(t.goalSaved);
+  $("tGoalsS").textContent="of "+money(t.goalTarget)+" target";
+  $("tSplit").textContent=S.split==="income"?Math.round(t.r*100)+" / "+Math.round((1-t.r)*100):"50 / 50";
+  $("tLeft").textContent=money(t.left);
+
+  var box=$("settleBox"), b=t.balance;
+  box.className="safe"+(Math.abs(b)<0.005?"":(Math.abs(b)>t.shared*0.25?" warn":""));
+  if(Math.abs(b)<0.005){
+    $("settleV").textContent="All square";
+    $("settleMeta").textContent=t.shared>0?"Both of you have paid your fair share.":"Add shared bills or payments to start.";
+    $("settleTag").textContent="Balanced";
+  }else if(b>0){
+    $("settleV").textContent=nm("b")+" owes "+money(b);
+    $("settleMeta").textContent=nm("a")+" has paid more than their share of "+money(t.shared)+" shared costs.";
+    $("settleTag").textContent="One payment settles it";
+  }else{
+    $("settleV").textContent=nm("a")+" owes "+money(-b);
+    $("settleMeta").textContent=nm("b")+" has paid more than their share of "+money(t.shared)+" shared costs.";
+    $("settleTag").textContent="One payment settles it";
+  }
+
+  var items=[];
+  S.bills.forEach(function(bl,i){
+    var who=bl.who==="split"?"split now":(nm(bl.who)+" pays");
+    items.push(li(bl.name,money(bl.amt),function(){S.bills.splice(i,1);save();render()},who));
+  });
+  fill($("bilList"),items,$("bilEmpty"));
+
+  $("shA").textContent=nm("a")+" share of bills";
+  $("shB").textContent=nm("b")+" share of bills";
+  $("shAv").textContent=money(t.billTotal*t.r);
+  $("shBv").textContent=money(t.billTotal-t.billTotal*t.r);
+  $("shBar").style.width=Math.round(t.r*100)+"%";
+  $("shNote").textContent=t.billTotal>0
+    ? "Shared bills come to "+money(t.billTotal)+" a month. That is "+
+      (S.aInc+S.bInc>0?Math.round(t.billTotal/(S.aInc+S.bInc)*100)+"% of your combined income.":"split by the rule you picked.")
+    : "Add your rent, power, internet and anything else you both use.";
+
+  items=[];
+  S.pays.forEach(function(p,i){
+    items.push(li(p.what,money(p.amt),function(){S.pays.splice(i,1);save();render()},nm(p.who)+" paid"));
+  });
+  fill($("payList"),items,$("payEmpty"));
+
+  items=[];
+  S.pers.forEach(function(p,i){
+    items.push(li(p.what,money(p.amt),function(){S.pers.splice(i,1);save();render()},nm(p.who)));
+  });
+  fill($("perList"),items,$("perEmpty"));
+  $("perAK").textContent=nm("a"); $("perBK").textContent=nm("b");
+  $("perAv").textContent=money(t.perA); $("perBv").textContent=money(t.perB);
+
+  var gl=$("goList"); gl.innerHTML="";
+  S.goals.forEach(function(g,i){
+    var pct=g.target>0?Math.min(100,g.saved/g.target*100):0;
+    var left=Math.max(0,g.target-g.saved);
+    var months=g.per>0?Math.ceil(left/g.per):null;
+    var w=document.createElement("div"); w.style.marginBottom="16px";
+    var head=document.createElement("div"); head.className="catrow";
+    var t1=document.createElement("span"); t1.textContent=g.name;
+    var t2=document.createElement("span"); t2.className="amt"; t2.textContent=money(g.saved)+" / "+money(g.target);
+    head.appendChild(t1); head.appendChild(t2);
+    var bar=document.createElement("div"); bar.className="bar";
+    var sp=document.createElement("span"); sp.style.width=pct+"%"; bar.appendChild(sp);
+    var foot=document.createElement("div"); foot.className="catrow";
+    var f1=document.createElement("span"); f1.className="sub";
+    f1.textContent = left<=0 ? "Reached." :
+      (months!==null? months+(months===1?" month left at ":" months left at ")+money(g.per)+" a month"
+                    : "Add a monthly amount to see how long it takes");
+    var f2=document.createElement("span");
+    var add=document.createElement("button"); add.className="ghost"; add.style.padding="4px 10px";
+    add.style.fontSize="13px"; add.textContent="+ "+money(g.per);
+    add.onclick=function(){g.saved=Math.round((g.saved+g.per)*100)/100;save();render()};
+    var del=document.createElement("button"); del.className="x"; del.textContent="×";
+    del.setAttribute("aria-label","Remove "+g.name);
+    del.onclick=function(){S.goals.splice(i,1);save();render()};
+    f2.appendChild(add); f2.appendChild(del);
+    foot.appendChild(f1); foot.appendChild(f2);
+    w.appendChild(head); w.appendChild(bar); w.appendChild(foot); gl.appendChild(w);
+  });
+  $("goEmpty").style.display=S.goals.length?"none":"block";
+
+  $("stARow").textContent=nm("a")+" paid"; $("stAOwe").textContent=nm("a")+" fair share";
+  $("stBRow").textContent=nm("b")+" paid"; $("stBOwe").textContent=nm("b")+" fair share";
+  $("stAPaid").textContent=money(t.aPaid); $("stAShare").textContent=money(t.aShare);
+  $("stBPaid").textContent=money(t.bPaid); $("stBShare").textContent=money(t.bShare);
+  $("stNote").textContent = Math.abs(t.balance)<0.005
+    ? "Nothing to settle. You are even."
+    : (t.balance>0? nm("b")+" sends "+money(t.balance)+" to "+nm("a")+" and you are even."
+                  : nm("a")+" sends "+money(-t.balance)+" to "+nm("b")+" and you are even.");
+
+  items=[];
+  S.hist.slice().reverse().forEach(function(h){
+    items.push(li(h.when,money(h.shared),null,h.note));
+  });
+  fill($("histList"),items,$("histEmpty"));
+}
+
+function go(id){
+  var secs=document.querySelectorAll("main section");
+  for(var i=0;i<secs.length;i++) secs[i].className=(secs[i].id===id)?"on":"";
+  var bs=document.querySelectorAll("nav button");
+  for(var j=0;j<bs.length;j++) bs[j].className=(bs[j].getAttribute("data-go")===id)?"on":"";
+  window.scrollTo(0,0);
+}
+document.addEventListener("click",function(e){
+  var el=e.target.closest?e.target.closest("[data-go]"):null;
+  if(el){go(el.getAttribute("data-go"))}
+});
+
+function bindField(id,key,isNum){
+  $(id).addEventListener("input",function(){
+    S[key]=isNum?num(this.value):this.value.slice(0,40);
+    save();render();
+  });
+}
+function wire(){
+  bindField("aName","aName"); bindField("bName","bName");
+  bindField("aInc","aInc",true); bindField("bInc","bInc",true);
+  $("cur").addEventListener("input",function(){S.cur=this.value.slice(0,3)||"$";save();render()});
+  var segs=$("splitSeg").children;
+  for(var i=0;i<segs.length;i++){
+    segs[i].addEventListener("click",function(){S.split=this.getAttribute("data-split");save();render()});
+  }
+  $("bilAdd").onclick=function(){
+    var n=$("bilName").value.trim(), a=num($("bilAmt").value);
+    if(!n||!a) return;
+    S.bills.push({name:n.slice(0,40),amt:a,who:$("bilWho").value});
+    $("bilName").value="";$("bilAmt").value="";save();render();
+  };
+  $("payAdd").onclick=function(){
+    var n=$("payWhat").value.trim(), a=num($("payAmt").value);
+    if(!n||!a) return;
+    S.pays.push({what:n.slice(0,40),amt:a,who:$("payWho").value});
+    $("payWhat").value="";$("payAmt").value="";save();render();
+  };
+  $("perAdd").onclick=function(){
+    var n=$("perWhat").value.trim(), a=num($("perAmt").value);
+    if(!n||!a) return;
+    S.pers.push({what:n.slice(0,40),amt:a,who:$("perWho").value});
+    $("perWhat").value="";$("perAmt").value="";save();render();
+  };
+  $("goAdd").onclick=function(){
+    var n=$("goName").value.trim(), tg=num($("goTarget").value), pr=num($("goPer").value);
+    if(!n||!tg) return;
+    S.goals.push({name:n.slice(0,40),target:tg,per:pr,saved:0});
+    $("goName").value="";$("goTarget").value="";$("goPer").value="";save();render();
+  };
+  $("stClear").onclick=function(){
+    var t=totals();
+    if(t.shared>0){
+      S.hist.push({when:new Date().toISOString().slice(0,10),shared:t.shared,
+        note:Math.abs(t.balance)<0.005?"settled even":
+          (t.balance>0? nm("b")+" paid "+money(t.balance):nm("a")+" paid "+money(-t.balance))});
+      if(S.hist.length>24) S.hist.shift();
+    }
+    S.pays=[]; S.pers=[];
+    save();render();go("over");
+  };
+  $("expBtn").onclick=function(){
+    alert("Backup export is available in the full version.\n\nYour data stays saved in this browser meanwhile.");return;
+    var blob=new Blob([JSON.stringify(S,null,1)],{type:"application/json"});
+    var a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="couples-budget-backup.json"; a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href)},2000);
+  };
+  $("impBtn").onclick=function(){$("impFile").click()};
+  $("impFile").onchange=function(){
+    var f=this.files&&this.files[0]; if(!f) return;
+    var r=new FileReader();
+    r.onload=function(){
+      try{localStorage.setItem(KEY,String(r.result)); load(); render();
+          $("savedNote").textContent="Backup restored.";}
+      catch(e){$("savedNote").textContent="That file could not be read.";}
+    };
+    r.readAsText(f); this.value="";
+  };
+  $("resetBtn").onclick=function(){
+    if(!window.confirm("Clear every number in this app? This cannot be undone.")) return;
+    S={aName:"",bName:"",aInc:0,bInc:0,cur:"$",split:"even",bills:[],pays:[],pers:[],goals:[],hist:[]};
+    save();render();
+  };
+}
+
+load(); wire(); render();
+window.__couples={S:S,totals:totals,ratio:ratio,load:load,save:save,render:render};
+})();
+</script>
