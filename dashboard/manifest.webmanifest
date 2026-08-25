@@ -1,0 +1,31 @@
+{
+  "name": "ADHD Budget Dashboard",
+  "short_name": "Money Dashboard",
+  "description": "ADHD Budget Dashboard. Works in your browser, no account and no subscription.",
+  "id": "/adhd-budget-planner-demo/dashboard/",
+  "start_url": "/adhd-budget-planner-demo/dashboard/",
+  "scope": "/adhd-budget-planner-demo/dashboard/",
+  "display": "standalone",
+  "background_color": "#FAF6F0",
+  "theme_color": "#2E3A34",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

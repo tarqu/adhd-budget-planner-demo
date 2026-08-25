@@ -1,4 +1,4 @@
-<meta charset="utf-8">
+<meta charset="utf-8"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2E3A34"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Money Dashboard">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DEMO - ADHD Money Dashboard</title>
 <style>
@@ -891,5 +891,14 @@ padding:6px 13px;border-radius:8px;font-weight:600;white-space:nowrap">Get the f
 
   load(); fill(); paint(); render();
   window.__tarqu={S:S,totals:totals,cycle:cycle,money:money,debtSim:debtSim,debtOrder:debtOrder};
+})();
+</script>
+<script>
+/* file:// uzerinde service worker calismaz. Kayit atlanir, urun normal calisir. */
+(function(){
+  if (!("serviceWorker" in navigator) || !/^https?:$/.test(location.protocol)) return;
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  });
 })();
 </script>

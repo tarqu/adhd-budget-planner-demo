@@ -1,4 +1,4 @@
-<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>DEMO - Couples Budget App</title>
+<!doctype html><meta charset="utf-8"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2E3A34"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Couples Budget"><meta name="viewport" content="width=device-width, initial-scale=1"><title>DEMO - Couples Budget App</title>
 <style>
   :root{
     --bg:#FAF6F0; --card:#FFFFFF; --ink:#2E3A34; --muted:#7C857E; --faint:#A6AFA6;
@@ -585,5 +585,14 @@ function wire(){
 
 load(); wire(); render();
 window.__couples={S:S,totals:totals,ratio:ratio,load:load,save:save,render:render};
+})();
+</script>
+<script>
+/* file:// uzerinde service worker calismaz. Kayit atlanir, urun normal calisir. */
+(function(){
+  if (!("serviceWorker" in navigator) || !/^https?:$/.test(location.protocol)) return;
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  });
 })();
 </script>
